@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="*" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="*" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="*" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="*" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="*" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="*" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="*" />
+    <PackageReference Include="Serilog.AspNetCore" Version="*" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="*" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlowBoard.Infrastructure\FlowBoard.Infrastructure.csproj" />
+    <ProjectReference Include="..\FlowBoard.Application\FlowBoard.Application.csproj" />
+    <ProjectReference Include="..\Modules\Identity\FlowBoard.Modules.Identity.Presentation\FlowBoard.Modules.Identity.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\Identity\FlowBoard.Modules.Identity.Infrastructure\FlowBoard.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Organisations\FlowBoard.Modules.Organisations.Presentation\FlowBoard.Modules.Organisations.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\Organisations\FlowBoard.Modules.Organisations.Infrastructure\FlowBoard.Modules.Organisations.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Projects\FlowBoard.Modules.Projects.Presentation\FlowBoard.Modules.Projects.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\Projects\FlowBoard.Modules.Projects.Infrastructure\FlowBoard.Modules.Projects.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Tasks\FlowBoard.Modules.Tasks.Presentation\FlowBoard.Modules.Tasks.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\Tasks\FlowBoard.Modules.Tasks.Infrastructure\FlowBoard.Modules.Tasks.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\FlowBoard.Modules.Notifications.Presentation\FlowBoard.Modules.Notifications.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\FlowBoard.Modules.Notifications.Infrastructure\FlowBoard.Modules.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\ActivityLog\FlowBoard.Modules.ActivityLog.Presentation\FlowBoard.Modules.ActivityLog.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\ActivityLog\FlowBoard.Modules.ActivityLog.Infrastructure\FlowBoard.Modules.ActivityLog.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Search\FlowBoard.Modules.Search.Presentation\FlowBoard.Modules.Search.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\Search\FlowBoard.Modules.Search.Infrastructure\FlowBoard.Modules.Search.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="FluentAssertions" Version="*" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+    <PackageReference Include="Moq" Version="*" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="*" />
+    <PackageReference Include="Testcontainers.Redis" Version="*" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FlowBoard.Api\FlowBoard.Api.csproj" />
+    <ProjectReference Include="..\..\src\FlowBoard.Infrastructure\FlowBoard.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,6 @@
+@FlowBoard.Api_HostAddress = http://localhost:5047
+
+GET {{FlowBoard.Api_HostAddress}}/test/
+Accept: application/json
+
+###

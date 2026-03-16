@@ -1,0 +1,30 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+*.log
+
+## Rider
+.idea/
+
+## Environment / secrets
+.env
+.env.*
+appsettings.Local.json
+appsettings.*.Local.json
+
+## Test results
+TestResults/
+coverage/
+*.trx
+*.coveragexml
+
+## NuGet
+*.nupkg
+.nuget/
+
+## Docker
+.dockerignore

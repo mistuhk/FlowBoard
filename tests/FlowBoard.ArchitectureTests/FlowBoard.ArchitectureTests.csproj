@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="FluentAssertions" Version="*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+    <PackageReference Include="Moq" Version="*" />
+    <PackageReference Include="NetArchTest.Rules" Version="*" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FlowBoard.Domain\FlowBoard.Domain.csproj" />
+    <ProjectReference Include="..\..\src\FlowBoard.Application\FlowBoard.Application.csproj" />
+    <ProjectReference Include="..\..\src\FlowBoard.Infrastructure\FlowBoard.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\FlowBoard.Api\FlowBoard.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\FlowBoard.Modules.Identity.Domain\FlowBoard.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\FlowBoard.Modules.Identity.Application\FlowBoard.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\FlowBoard.Modules.Identity.Infrastructure\FlowBoard.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\FlowBoard.Modules.Identity.Presentation\FlowBoard.Modules.Identity.Presentation.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Organisations\FlowBoard.Modules.Organisations.Domain\FlowBoard.Modules.Organisations.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Organisations\FlowBoard.Modules.Organisations.Application\FlowBoard.Modules.Organisations.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Organisations\FlowBoard.Modules.Organisations.Infrastructure\FlowBoard.Modules.Organisations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Organisations\FlowBoard.Modules.Organisations.Presentation\FlowBoard.Modules.Organisations.Presentation.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Projects\FlowBoard.Modules.Projects.Domain\FlowBoard.Modules.Projects.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Projects\FlowBoard.Modules.Projects.Application\FlowBoard.Modules.Projects.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Projects\FlowBoard.Modules.Projects.Infrastructure\FlowBoard.Modules.Projects.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Projects\FlowBoard.Modules.Projects.Presentation\FlowBoard.Modules.Projects.Presentation.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\FlowBoard.Modules.Tasks.Domain\FlowBoard.Modules.Tasks.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\FlowBoard.Modules.Tasks.Application\FlowBoard.Modules.Tasks.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\FlowBoard.Modules.Tasks.Infrastructure\FlowBoard.Modules.Tasks.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\FlowBoard.Modules.Tasks.Presentation\FlowBoard.Modules.Tasks.Presentation.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\FlowBoard.Modules.Notifications.Domain\FlowBoard.Modules.Notifications.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\FlowBoard.Modules.Notifications.Application\FlowBoard.Modules.Notifications.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\FlowBoard.Modules.Notifications.Infrastructure\FlowBoard.Modules.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\FlowBoard.Modules.Notifications.Presentation\FlowBoard.Modules.Notifications.Presentation.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ActivityLog\FlowBoard.Modules.ActivityLog.Domain\FlowBoard.Modules.ActivityLog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ActivityLog\FlowBoard.Modules.ActivityLog.Application\FlowBoard.Modules.ActivityLog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ActivityLog\FlowBoard.Modules.ActivityLog.Infrastructure\FlowBoard.Modules.ActivityLog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ActivityLog\FlowBoard.Modules.ActivityLog.Presentation\FlowBoard.Modules.ActivityLog.Presentation.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Search\FlowBoard.Modules.Search.Domain\FlowBoard.Modules.Search.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Search\FlowBoard.Modules.Search.Application\FlowBoard.Modules.Search.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Search\FlowBoard.Modules.Search.Infrastructure\FlowBoard.Modules.Search.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Search\FlowBoard.Modules.Search.Presentation\FlowBoard.Modules.Search.Presentation.csproj" />
+  </ItemGroup>
+
+</Project>

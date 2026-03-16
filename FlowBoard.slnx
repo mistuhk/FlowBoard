@@ -1,0 +1,68 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/FlowBoard.Api/FlowBoard.Api.csproj" />
+    <Project Path="src/FlowBoard.Application/FlowBoard.Application.csproj" />
+    <Project Path="src/FlowBoard.Domain/FlowBoard.Domain.csproj" />
+    <Project Path="src/FlowBoard.Infrastructure/FlowBoard.Infrastructure.csproj" />
+    <Project Path="src/FlowBoard.Shared/FlowBoard.Shared.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/ActivityLog/">
+    <Project Path="src/Modules/ActivityLog/FlowBoard.Modules.ActivityLog.Application/FlowBoard.Modules.ActivityLog.Application.csproj" />
+    <Project Path="src/Modules/ActivityLog/FlowBoard.Modules.ActivityLog.Domain/FlowBoard.Modules.ActivityLog.Domain.csproj" />
+    <Project Path="src/Modules/ActivityLog/FlowBoard.Modules.ActivityLog.Infrastructure/FlowBoard.Modules.ActivityLog.Infrastructure.csproj" />
+    <Project Path="src/Modules/ActivityLog/FlowBoard.Modules.ActivityLog.Presentation/FlowBoard.Modules.ActivityLog.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/FlowBoard.Modules.Identity.Application/FlowBoard.Modules.Identity.Application.csproj" />
+    <Project Path="src/Modules/Identity/FlowBoard.Modules.Identity.Domain/FlowBoard.Modules.Identity.Domain.csproj" />
+    <Project Path="src/Modules/Identity/FlowBoard.Modules.Identity.Infrastructure/FlowBoard.Modules.Identity.Infrastructure.csproj" />
+    <Project Path="src/Modules/Identity/FlowBoard.Modules.Identity.Presentation/FlowBoard.Modules.Identity.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Notifications/">
+    <Project Path="src/Modules/Notifications/FlowBoard.Modules.Notifications.Application/FlowBoard.Modules.Notifications.Application.csproj" />
+    <Project Path="src/Modules/Notifications/FlowBoard.Modules.Notifications.Domain/FlowBoard.Modules.Notifications.Domain.csproj" />
+    <Project Path="src/Modules/Notifications/FlowBoard.Modules.Notifications.Infrastructure/FlowBoard.Modules.Notifications.Infrastructure.csproj" />
+    <Project Path="src/Modules/Notifications/FlowBoard.Modules.Notifications.Presentation/FlowBoard.Modules.Notifications.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Organisations/">
+    <Project Path="src/Modules/Organisations/FlowBoard.Modules.Organisations.Application/FlowBoard.Modules.Organisations.Application.csproj" />
+    <Project Path="src/Modules/Organisations/FlowBoard.Modules.Organisations.Domain/FlowBoard.Modules.Organisations.Domain.csproj" />
+    <Project Path="src/Modules/Organisations/FlowBoard.Modules.Organisations.Infrastructure/FlowBoard.Modules.Organisations.Infrastructure.csproj" />
+    <Project Path="src/Modules/Organisations/FlowBoard.Modules.Organisations.Presentation/FlowBoard.Modules.Organisations.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Projects/">
+    <Project Path="src/Modules/Projects/FlowBoard.Modules.Projects.Application/FlowBoard.Modules.Projects.Application.csproj" />
+    <Project Path="src/Modules/Projects/FlowBoard.Modules.Projects.Domain/FlowBoard.Modules.Projects.Domain.csproj" />
+    <Project Path="src/Modules/Projects/FlowBoard.Modules.Projects.Infrastructure/FlowBoard.Modules.Projects.Infrastructure.csproj" />
+    <Project Path="src/Modules/Projects/FlowBoard.Modules.Projects.Presentation/FlowBoard.Modules.Projects.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Search/">
+    <Project Path="src/Modules/Search/FlowBoard.Modules.Search.Application/FlowBoard.Modules.Search.Application.csproj" />
+    <Project Path="src/Modules/Search/FlowBoard.Modules.Search.Domain/FlowBoard.Modules.Search.Domain.csproj" />
+    <Project Path="src/Modules/Search/FlowBoard.Modules.Search.Infrastructure/FlowBoard.Modules.Search.Infrastructure.csproj" />
+    <Project Path="src/Modules/Search/FlowBoard.Modules.Search.Presentation/FlowBoard.Modules.Search.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Tasks/">
+    <Project Path="src/Modules/Tasks/FlowBoard.Modules.Tasks.Application/FlowBoard.Modules.Tasks.Application.csproj" />
+    <Project Path="src/Modules/Tasks/FlowBoard.Modules.Tasks.Domain/FlowBoard.Modules.Tasks.Domain.csproj" />
+    <Project Path="src/Modules/Tasks/FlowBoard.Modules.Tasks.Infrastructure/FlowBoard.Modules.Tasks.Infrastructure.csproj" />
+    <Project Path="src/Modules/Tasks/FlowBoard.Modules.Tasks.Presentation/FlowBoard.Modules.Tasks.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlowBoard.Api.IntegrationTests/FlowBoard.Api.IntegrationTests.csproj" />
+    <Project Path="tests/FlowBoard.Application.UnitTests/FlowBoard.Application.UnitTests.csproj" />
+    <Project Path="tests/FlowBoard.ArchitectureTests/FlowBoard.ArchitectureTests.csproj" />
+    <Project Path="tests/FlowBoard.Domain.UnitTests/FlowBoard.Domain.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/">
+    <Project Path="tests/Modules/ActivityLog/FlowBoard.Modules.ActivityLog.UnitTests/FlowBoard.Modules.ActivityLog.UnitTests.csproj" />
+    <Project Path="tests/Modules/Identity/FlowBoard.Modules.Identity.UnitTests/FlowBoard.Modules.Identity.UnitTests.csproj" />
+    <Project Path="tests/Modules/Notifications/FlowBoard.Modules.Notifications.UnitTests/FlowBoard.Modules.Notifications.UnitTests.csproj" />
+    <Project Path="tests/Modules/Organisations/FlowBoard.Modules.Organisations.UnitTests/FlowBoard.Modules.Organisations.UnitTests.csproj" />
+    <Project Path="tests/Modules/Projects/FlowBoard.Modules.Projects.UnitTests/FlowBoard.Modules.Projects.UnitTests.csproj" />
+    <Project Path="tests/Modules/Search/FlowBoard.Modules.Search.UnitTests/FlowBoard.Modules.Search.UnitTests.csproj" />
+    <Project Path="tests/Modules/Tasks/FlowBoard.Modules.Tasks.UnitTests/FlowBoard.Modules.Tasks.UnitTests.csproj" />
+  </Folder>
+</Solution>
