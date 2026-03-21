@@ -5,10 +5,16 @@ namespace FlowBoard.Application.Behaviours;
 
 /// <summary>
 /// MediatR pipeline behaviour that wraps <see cref="ICommand"/> and
-/// <see cref="ICommand{TResponse}"/> handlers in a database transaction.
+/// <see cref="ICommand{TResponse}"/> handlers in an explicit database transaction.
+/// <para>
+/// The explicit transaction is required so that:
+/// <list type="bullet">
+///   <item>Aggregate changes and outbox messages are committed atomically.</item>
+///   <item><c>SET LOCAL app.current_organisation_id</c> can be issued within the
+///         transaction, enabling PostgreSQL Row-Level Security enforcement.</item>
+/// </list>
+/// </para>
 /// <see cref="IQuery{TResponse}"/> requests pass straight through with no transaction overhead.
-/// On successful completion the <see cref="IUnitOfWork.SaveChangesAsync"/> is called,
-/// which commits pending EF Core changes and serialises domain events to the outbox.
 /// </summary>
 /// <typeparam name="TRequest">The MediatR request type.</typeparam>
 /// <typeparam name="TResponse">The response type produced by the handler.</typeparam>
@@ -23,11 +29,21 @@ public sealed class TransactionBehaviour<TRequest, TResponse>(IUnitOfWork unitOf
         CancellationToken cancellationToken)
     {
         // Queries are read-only — skip transaction entirely
-        if (request is not ICommand and not ICommand<TResponse>)
-            return await next();
+        if (request is IQuery<TResponse>)
+            return await next(cancellationToken);
 
-        var response = await next();
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return response;
+        await unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var response = await next(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitTransactionAsync(cancellationToken);
+            return response;
+        }
+        catch
+        {
+            await unitOfWork.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
     }
 }

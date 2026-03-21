@@ -28,3 +28,8 @@ coverage/
 
 ## Docker
 .dockerignore
+
+## Local development settings (contains connection strings)
+appsettings.Development.json
+appsettings.Development.*.json
+docker-compose.override.yml
