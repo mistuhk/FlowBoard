@@ -43,27 +43,29 @@ public sealed class User : AggregateRoot<UserId>
     public DateTime? DeletedAt { get; private set; }
 
     /// <summary>
-    /// Factory method. Creates a new unverified user account and raises
+    /// Creates a new, unverified user.
+    /// The password must already be hashed, hashing is performed by IPasswordHasher in the Application layer.
     /// <see cref="UserRegisteredEvent"/>.
     /// </summary>
     /// <param name="email">The user's email address.</param>
     /// <param name="password">The plaintext password (hashed internally by <see cref="HashedPassword"/>).</param>
     /// <param name="displayName">The user's chosen display name.</param>
     /// <returns>A new <see cref="User"/> instance with <see cref="IsEmailVerified"/> set to <c>false</c>.</returns>
-    public static User Register(string email, string password, string displayName)
+    public static User Register(Email email, HashedPassword password, DisplayName displayName)
     {
+        var now = DateTime.UtcNow;
         var user = new User
         {
             Id = UserId.New(),
-            Email = Email.Create(email),
-            Password = HashedPassword.FromPlaintext(password),
-            DisplayName = DisplayName.Create(displayName),
+            Email = email,
+            Password = password,
+            DisplayName = displayName,
             IsEmailVerified = false,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = now,     // object initialiser bypasses the base ctor, so set it explicitly
+            UpdatedAt = now,
         };
 
-        user.Raise(new UserRegisteredEvent(user.Id, user.Email.Value));
-
+        user.Raise(new UserRegisteredEvent(user.Id, email.Value));
         return user;
     }
 

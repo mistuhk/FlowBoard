@@ -1,4 +1,4 @@
-﻿namespace FlowBoard.Api.IntegrationTests;
+namespace FlowBoard.Api.IntegrationTests;
 
 public class UnitTest1
 {

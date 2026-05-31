@@ -1,4 +1,4 @@
-﻿namespace FlowBoard.ArchitectureTests;
+namespace FlowBoard.ArchitectureTests;
 
 public class UnitTest1
 {

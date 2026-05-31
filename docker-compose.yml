@@ -1,0 +1,87 @@
+# FlowBoard — Local development infrastructure
+# Usage: docker compose up -d
+#
+# Services:
+#   postgres  -> localhost:5432  (flowboard / flowboard)
+#   redis     -> localhost:6379
+#   minio     -> localhost:9000 (API) / localhost:9001 (console)
+#   mailhog   -> localhost:1025 (SMTP) / localhost:8025 (UI)
+#   jaeger    -> localhost:16686 (UI) / localhost:4317 (OTLP gRPC)
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: flowboard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: flowboard
+      POSTGRES_USER: flowboard
+      POSTGRES_PASSWORD: flowboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowboard -d flowboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: flowboard-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    container_name: flowboard-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: flowboard
+      MINIO_ROOT_PASSWORD: flowboard123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: flowboard-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    logging:
+      driver: none    # Suppress verbose mailhog output
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: flowboard-jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
