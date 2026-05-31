@@ -1,4 +1,4 @@
-﻿namespace FlowBoard.Modules.Projects.UnitTests;
+namespace FlowBoard.Modules.Projects.UnitTests;
 
 public class UnitTest1
 {
