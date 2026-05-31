@@ -12,7 +12,7 @@ application.
 | Layer | Technology |
 |---|---|
 | Frontend | React + TypeScript |
-| Backend | ASP.NET Core Web API (.NET 8) |
+| Backend | ASP.NET Core Web API (.NET 10) |
 | Database | PostgreSQL 16 |
 | Caching | Redis |
 | Object Storage | S3-compatible (AWS S3 / MinIO) |

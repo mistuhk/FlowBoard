@@ -57,23 +57,25 @@ src/
       IEmailService.cs
       IStorageService.cs
     Behaviours/                     # MediatR pipeline behaviours
-      ValidationBehaviour.cs
       LoggingBehaviour.cs
-      AuthorisationBehaviour.cs
+      ValidationBehaviour.cs
       PerformanceBehaviour.cs
       TransactionBehaviour.cs
 
   FlowBoard.Domain/                 # Domain layer (shared kernel)
     Primitives/
-      Entity.cs                     # Base entity with Id and domain events
-      AggregateRoot.cs
+      Entity.cs                     # Base entity with Id and CreatedAt
+      AggregateRoot.cs              # Entity that collects domain events
       ValueObject.cs
       DomainEvent.cs
-      IDomainEventHandler.cs
+      IDomainEvent.cs
+      IHasDomainEvents.cs
+      Result.cs                     # Result / Result<T> / Error pattern
     Shared/
-      OrganisationId.cs
-      UserId.cs
-      Result.cs                     # Result<T> / Error pattern
+      Exceptions/
+        DomainException.cs
+      ValueObjects/
+        StronglyTypedIds.cs         # UserId, OrganisationId, ProjectId, etc.
 
   FlowBoard.Shared/
     Guards/
@@ -84,7 +86,7 @@ src/
     Identity/
       Domain/
         User.cs                     # Aggregate root
-        UserCreatedEvent.cs
+        UserRegisteredEvent.cs
         EmailVerifiedEvent.cs
         ValueObjects/
           Email.cs
@@ -105,9 +107,10 @@ src/
         Persistence/
           UserRepository.cs
           UserConfiguration.cs     # EF Core Fluent API config
-      Api/
-        AuthController.cs
-        UsersController.cs
+      Presentation/
+        Controllers/
+          AuthController.cs
+          UsersController.cs
 
     Organisations/
       Domain/
@@ -129,9 +132,10 @@ src/
         EventHandlers/ ...
       Infrastructure/
         Persistence/ ...
-      Api/
-        OrganisationsController.cs
-        MembershipsController.cs
+      Presentation/
+        Controllers/
+          OrganisationsController.cs
+          MembershipsController.cs
 
     Projects/
       Domain/
@@ -143,8 +147,9 @@ src/
           ProjectStatus.cs
       Application/ ...
       Infrastructure/ ...
-      Api/
-        ProjectsController.cs
+      Presentation/
+        Controllers/
+          ProjectsController.cs
 
     Tasks/
       Domain/
@@ -164,10 +169,11 @@ src/
           CommentContent.cs
       Application/ ...
       Infrastructure/ ...
-      Api/
-        TasksController.cs
-        CommentsController.cs
-        AttachmentsController.cs
+      Presentation/
+        Controllers/
+          TasksController.cs
+          CommentsController.cs
+          AttachmentsController.cs
 
     Notifications/
       Domain/
@@ -185,8 +191,9 @@ src/
         Jobs/
           SendEmailNotificationJob.cs
       Infrastructure/ ...
-      Api/
-        NotificationsController.cs
+      Presentation/
+        Controllers/
+          NotificationsController.cs
 
     ActivityLog/
       Domain/
@@ -202,8 +209,9 @@ src/
       Infrastructure/
         Persistence/
           ActivityLogRepository.cs
-      Api/
-        ActivityLogController.cs
+      Presentation/
+        Controllers/
+          ActivityLogController.cs
 
     Search/
       Application/
@@ -213,8 +221,9 @@ src/
       Infrastructure/
         Persistence/
           SearchRepository.cs      # Uses Postgres tsvector queries
-      Api/
-        SearchController.cs
+      Presentation/
+        Controllers/
+          SearchController.cs
 
   FlowBoard.Infrastructure/        # Shared infrastructure
     Persistence/
@@ -246,7 +255,6 @@ following order:
 ```
 Request
   → LoggingBehaviour          (log request entry/exit, duration)
-  → AuthorisationBehaviour    (policy-based authorisation check)
   → ValidationBehaviour       (FluentValidation, returns 422 on failure)
   → PerformanceBehaviour      (log warning if handler > 500ms)
   → TransactionBehaviour      (wraps Commands in a DB transaction; skips Queries)
@@ -325,8 +333,6 @@ Authorisation uses a combination of:
 1. **JWT role claim**, coarse-grained gate (e.g. "must be Admin or Owner")
 2. **Policy-based authorisation** via ASP.NET Core `IAuthorizationHandler`, fine-grained
    checks (e.g. "must be a member of this specific organisation")
-3. **MediatR `AuthorisationBehaviour`**, command/query level authorisation using
-   `IAuthorisationRequirement` per request type
 
 ---
 
@@ -416,7 +422,7 @@ OpenTelemetry Metrics exported to Prometheus. Key metrics:
 |---|---|
 | Mediator / CQRS | MediatR |
 | Validation | FluentValidation |
-| ORM | Entity Framework Core 8 |
+| ORM | Entity Framework Core 10 |
 | Caching | StackExchange.Redis |
 | Background jobs | Hangfire |
 | Logging | Serilog |
