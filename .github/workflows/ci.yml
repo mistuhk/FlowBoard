@@ -78,12 +78,10 @@ jobs:
         # The ubuntu-latest runner has Docker pre-installed, no service containers needed.
         run: |
           dotnet test \
-            --no-build \
             --configuration Release \
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage \
-            --logger "trx;LogFileName=test-results.trx" \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+            --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
