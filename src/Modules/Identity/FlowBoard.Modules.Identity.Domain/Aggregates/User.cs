@@ -33,7 +33,11 @@ public sealed class User : AggregateRoot<UserId>
     /// </summary>
     public bool IsEmailVerified { get; private set; }
 
-    /// <summary>UTC timestamp of the most recent change to this aggregate.</summary>
+    /// <summary>
+    /// UTC timestamp of the most recent change to this aggregate.
+    /// Database-managed: set on insert by the <c>updated_at</c> column default and on
+    /// update by the <c>trg_users_updated_at</c> trigger. Never assigned in code.
+    /// </summary>
     public DateTime UpdatedAt { get; private set; }
 
     /// <summary>UTC timestamp of the user's most recent successful login. <c>null</c> if never logged in.</summary>
@@ -53,7 +57,6 @@ public sealed class User : AggregateRoot<UserId>
     /// <returns>A new <see cref="User"/> instance with <see cref="IsEmailVerified"/> set to <c>false</c>.</returns>
     public static User Register(Email email, HashedPassword password, DisplayName displayName)
     {
-        var now = DateTime.UtcNow;
         var user = new User
         {
             Id = UserId.New(),
@@ -61,8 +64,8 @@ public sealed class User : AggregateRoot<UserId>
             Password = password,
             DisplayName = displayName,
             IsEmailVerified = false,
-            CreatedAt = now,     // object initialiser bypasses the base ctor, so set it explicitly
-            UpdatedAt = now,
+            CreatedAt = DateTime.UtcNow,  // object initialiser bypasses the base ctor, so set it explicitly
+            // updated_at is database-managed (column default on insert, trigger on update).
         };
 
         user.Raise(new UserRegisteredEvent(user.Id, email.Value));
@@ -75,7 +78,6 @@ public sealed class User : AggregateRoot<UserId>
     public void VerifyEmail()
     {
         IsEmailVerified = true;
-        UpdatedAt = DateTime.UtcNow;
 
         Raise(new EmailVerifiedEvent(Id));
     }
@@ -84,6 +86,5 @@ public sealed class User : AggregateRoot<UserId>
     public void RecordLogin()
     {
         LastLoginAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
     }
 }
