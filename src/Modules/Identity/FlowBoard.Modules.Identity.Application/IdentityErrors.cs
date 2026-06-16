@@ -12,4 +12,9 @@ public static class IdentityErrors
     public static readonly Error EmailAlreadyInUse = new(
         "Identity.EmailAlreadyInUse",
         "A user with this email address already exists.");
+
+    /// <summary>Returned when an email-verification token is unknown, expired, or already used.</summary>
+    public static readonly Error InvalidVerificationToken = new(
+        "Identity.InvalidVerificationToken",
+        "The verification token is invalid or has expired.");
 }

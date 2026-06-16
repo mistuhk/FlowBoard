@@ -57,4 +57,17 @@ public sealed class UserTests
         user.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<EmailVerifiedEvent>();
     }
+
+    [Fact]
+    public void VerifyEmail_is_idempotent_and_raises_no_event_when_already_verified()
+    {
+        var user = Register();
+        user.VerifyEmail();
+        user.ClearDomainEvents();
+
+        user.VerifyEmail();
+
+        user.IsEmailVerified.Should().BeTrue();
+        user.DomainEvents.Should().BeEmpty();
+    }
 }

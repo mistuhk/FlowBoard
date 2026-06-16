@@ -74,9 +74,13 @@ public sealed class User : AggregateRoot<UserId>
 
     /// <summary>
     /// Marks the user's email as verified and raises <see cref="EmailVerifiedEvent"/>.
+    /// Idempotent: verifying an already-verified account is a no-op and raises no event.
     /// </summary>
     public void VerifyEmail()
     {
+        if (IsEmailVerified)
+            return;
+
         IsEmailVerified = true;
 
         Raise(new EmailVerifiedEvent(Id));
