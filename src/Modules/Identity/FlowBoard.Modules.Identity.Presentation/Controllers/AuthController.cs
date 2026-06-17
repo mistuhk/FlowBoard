@@ -1,10 +1,14 @@
+using System.Security.Claims;
 using FlowBoard.Domain.Primitives;
 using FlowBoard.Modules.Identity.Application;
 using FlowBoard.Modules.Identity.Application.Commands.LoginUser;
+using FlowBoard.Modules.Identity.Application.Commands.Logout;
+using FlowBoard.Modules.Identity.Application.Commands.RefreshToken;
 using FlowBoard.Modules.Identity.Application.Commands.RegisterUser;
 using FlowBoard.Modules.Identity.Application.Commands.VerifyEmail;
 using FlowBoard.Modules.Identity.Presentation.Contracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -107,18 +111,93 @@ public sealed class AuthController(ISender sender) : ControllerBase
     }
 
     /// <summary>
+    /// Exchanges the refresh token in the request cookie for a new access token, rotating the
+    /// refresh token in the process.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>
+    /// <c>200 OK</c> with a new access token, and a rotated refresh token set as an httpOnly
+    /// cookie; <c>401 Unauthorized</c> if the cookie is missing or the token is invalid, expired,
+    /// or already used.
+    /// </returns>
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
+    {
+        var refreshToken = Request.Cookies[RefreshTokenCookieName];
+        if (string.IsNullOrEmpty(refreshToken))
+            return ToProblem(IdentityErrors.InvalidRefreshToken, StatusCodes.Status401Unauthorized, "Unauthorized", "invalid-refresh-token");
+
+        var result = await sender.Send(new RefreshTokenCommand(refreshToken), cancellationToken);
+
+        if (result.IsFailure)
+        {
+            ClearRefreshTokenCookie();
+            return ToProblem(result.Error, StatusCodes.Status401Unauthorized, "Unauthorized", "invalid-refresh-token");
+        }
+
+        var response = result.Value;
+        SetRefreshTokenCookie(response.RefreshToken);
+
+        return Ok(new LoginResponse(response.AccessToken, response.AccessTokenExpiresAtUtc));
+    }
+
+    /// <summary>
+    /// Logs the current session out: revokes the access token and deletes the refresh token. The
+    /// caller must present a valid access token.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><c>204 No Content</c> once the session is revoked.</returns>
+    [Authorize]
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    {
+        var tokenId = User.FindFirstValue("jti");
+        var expiry = User.FindFirstValue("exp");
+        if (string.IsNullOrEmpty(tokenId) || !long.TryParse(expiry, out var expiryUnixSeconds))
+            return Unauthorized();
+
+        var expiresAtUtc = DateTimeOffset.FromUnixTimeSeconds(expiryUnixSeconds).UtcDateTime;
+        var refreshToken = Request.Cookies[RefreshTokenCookieName];
+
+        await sender.Send(new LogoutCommand(tokenId, expiresAtUtc, refreshToken), cancellationToken);
+
+        ClearRefreshTokenCookie();
+        return NoContent();
+    }
+
+    /// <summary>The name of the cookie carrying the refresh token.</summary>
+    private const string RefreshTokenCookieName = "refresh_token";
+
+    /// <summary>The path the refresh cookie is scoped to, matched on both set and delete.</summary>
+    private const string RefreshTokenCookiePath = "/api/v1/auth";
+
+    /// <summary>
     /// Writes the refresh token as an httpOnly, Secure, SameSite=Strict cookie scoped to the auth
     /// endpoints, so it is never readable by client script and is only returned to the refresh and
     /// logout routes.
     /// </summary>
     private void SetRefreshTokenCookie(string refreshToken) =>
-        Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+        Response.Cookies.Append(RefreshTokenCookieName, refreshToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Path = "/api/v1/auth",
+            Path = RefreshTokenCookiePath,
             MaxAge = RefreshTokens.Ttl,
+        });
+
+    /// <summary>Removes the refresh cookie, using the same attributes it was set with.</summary>
+    private void ClearRefreshTokenCookie() =>
+        Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = RefreshTokenCookiePath,
         });
 
     private ObjectResult ToProblem(Error error, int statusCode, string title, string type) =>

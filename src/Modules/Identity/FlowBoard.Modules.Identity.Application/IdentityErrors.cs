@@ -31,4 +31,9 @@ public static class IdentityErrors
     public static readonly Error EmailNotVerified = new(
         "Identity.EmailNotVerified",
         "The email address for this account has not been verified.");
+
+    /// <summary>Returned when a refresh token is missing, unknown, expired, or already used.</summary>
+    public static readonly Error InvalidRefreshToken = new(
+        "Identity.InvalidRefreshToken",
+        "The refresh token is invalid or has expired.");
 }

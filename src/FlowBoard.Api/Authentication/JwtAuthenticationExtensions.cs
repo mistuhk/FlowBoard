@@ -1,4 +1,7 @@
+using System.Security.Claims;
+using FlowBoard.Application.Abstractions;
 using FlowBoard.Infrastructure.Authentication;
+using FlowBoard.Modules.Identity.Application;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -47,6 +50,23 @@ public static class JwtAuthenticationExtensions
                     IssuerSigningKey = keyProvider.SigningKey,
                     ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
                     ClockSkew = TimeSpan.FromSeconds(30),
+                };
+
+                // Reject tokens whose jti has been blocklisted by a logout, so a revoked access
+                // token stops working at once rather than only when it would naturally expire.
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var tokenId = context.Principal?.FindFirstValue("jti");
+                        if (string.IsNullOrEmpty(tokenId))
+                            return;
+
+                        var cache = context.HttpContext.RequestServices.GetRequiredService<ICacheService>();
+                        var revoked = await cache.GetAsync<string>(AccessTokenBlocklist.Key(tokenId));
+                        if (revoked is not null)
+                            context.Fail("This token has been revoked.");
+                    },
                 };
             });
 

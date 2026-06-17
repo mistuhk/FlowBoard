@@ -14,6 +14,16 @@ public interface ICacheService
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Atomically retrieves a cached value and removes it, returning <c>null</c> if the key did
+    /// not exist. The read and delete happen as one operation, so a value can be consumed exactly
+    /// once even under concurrent callers. Used for single-use and rotating tokens.
+    /// </summary>
+    /// <typeparam name="T">The type of the cached value.</typeparam>
+    /// <param name="key">The cache key to consume.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    Task<T?> GetAndRemoveAsync<T>(string key, CancellationToken cancellationToken = default);
+
     /// <summary>Stores a value in the cache with an optional expiry.</summary>
     /// <typeparam name="T">The type of the value to cache.</typeparam>
     /// <param name="key">The cache key.</param>
