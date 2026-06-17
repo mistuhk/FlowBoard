@@ -20,6 +20,16 @@ public interface IUserRepository
     Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Loads a tracked <see cref="User"/> by email address, or <c>null</c> if no active
+    /// (non-deleted) user has that address. Email comparison is case-insensitive (the
+    /// <see cref="Email"/> value object is normalised). The entity is change-tracked so the
+    /// caller can mutate it (for example to record a login) and have the change persisted.
+    /// </summary>
+    /// <param name="email">The email address to look up.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Loads a tracked <see cref="User"/> by its identifier, or <c>null</c> if no active
     /// (non-deleted) user exists with that id. The entity is change-tracked so callers can
     /// mutate it and have the change persisted by the unit of work.

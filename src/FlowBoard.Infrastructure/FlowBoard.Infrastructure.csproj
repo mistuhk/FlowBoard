@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="*" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="*" />
     <PackageReference Include="Newtonsoft.Json" Version="*" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="*" />
     <PackageReference Include="OpenTelemetry" Version="*" />

@@ -17,4 +17,18 @@ public static class IdentityErrors
     public static readonly Error InvalidVerificationToken = new(
         "Identity.InvalidVerificationToken",
         "The verification token is invalid or has expired.");
+
+    /// <summary>
+    /// Returned when login fails because the email is unknown or the password is wrong.
+    /// Deliberately identical for both cases so the response cannot be used to discover
+    /// which email addresses are registered.
+    /// </summary>
+    public static readonly Error InvalidCredentials = new(
+        "Identity.InvalidCredentials",
+        "The email address or password is incorrect.");
+
+    /// <summary>Returned when login is attempted before the account's email has been verified.</summary>
+    public static readonly Error EmailNotVerified = new(
+        "Identity.EmailNotVerified",
+        "The email address for this account has not been verified.");
 }

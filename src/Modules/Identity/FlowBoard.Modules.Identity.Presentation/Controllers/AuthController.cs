@@ -1,4 +1,6 @@
 using FlowBoard.Domain.Primitives;
+using FlowBoard.Modules.Identity.Application;
+using FlowBoard.Modules.Identity.Application.Commands.LoginUser;
 using FlowBoard.Modules.Identity.Application.Commands.RegisterUser;
 using FlowBoard.Modules.Identity.Application.Commands.VerifyEmail;
 using FlowBoard.Modules.Identity.Presentation.Contracts;
@@ -66,6 +68,58 @@ public sealed class AuthController(ISender sender) : ControllerBase
             ? NoContent()
             : ToProblem(result.Error, StatusCodes.Status400BadRequest, "Bad Request", "invalid-verification-token");
     }
+
+    /// <summary>
+    /// Authenticates a user and issues an access token plus a refresh token.
+    /// </summary>
+    /// <param name="request">The login credentials.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>
+    /// <c>200 OK</c> with the access token on success, and the refresh token set as an httpOnly
+    /// cookie; <c>401 Unauthorized</c> if the credentials are wrong; <c>403 Forbidden</c> if the
+    /// account's email is not yet verified; <c>422 Unprocessable Entity</c> if the body fails
+    /// validation.
+    /// </returns>
+    [HttpPost("login")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> Login(
+        [FromBody] LoginRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(
+            new LoginUserCommand(request.Email, request.Password),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return result.Error == IdentityErrors.EmailNotVerified
+                ? ToProblem(result.Error, StatusCodes.Status403Forbidden, "Forbidden", "email-not-verified")
+                : ToProblem(result.Error, StatusCodes.Status401Unauthorized, "Unauthorized", "invalid-credentials");
+        }
+
+        var response = result.Value;
+        SetRefreshTokenCookie(response.RefreshToken);
+
+        return Ok(new LoginResponse(response.AccessToken, response.AccessTokenExpiresAtUtc));
+    }
+
+    /// <summary>
+    /// Writes the refresh token as an httpOnly, Secure, SameSite=Strict cookie scoped to the auth
+    /// endpoints, so it is never readable by client script and is only returned to the refresh and
+    /// logout routes.
+    /// </summary>
+    private void SetRefreshTokenCookie(string refreshToken) =>
+        Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/v1/auth",
+            MaxAge = RefreshTokens.Ttl,
+        });
 
     private ObjectResult ToProblem(Error error, int statusCode, string title, string type) =>
         new(new ProblemDetails
