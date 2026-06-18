@@ -41,4 +41,9 @@ public static class IdentityErrors
     public static readonly Error InvalidPasswordResetToken = new(
         "Identity.InvalidPasswordResetToken",
         "The password reset token is invalid or has expired.");
+
+    /// <summary>Returned when the requested user account does not exist or is no longer active.</summary>
+    public static readonly Error UserNotFound = new(
+        "Identity.UserNotFound",
+        "The user account could not be found.");
 }

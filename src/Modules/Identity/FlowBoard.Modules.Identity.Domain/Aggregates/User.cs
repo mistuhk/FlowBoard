@@ -114,4 +114,11 @@ public sealed class User : AggregateRoot<UserId>
 
         Raise(new PasswordChangedEvent(Id));
     }
+
+    /// <summary>Updates the user's editable profile details.</summary>
+    /// <param name="displayName">The new display name.</param>
+    public void UpdateProfile(DisplayName displayName)
+    {
+        DisplayName = displayName;
+    }
 }

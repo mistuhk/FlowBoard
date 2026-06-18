@@ -99,4 +99,16 @@ public sealed class UserTests
             .Which.Should().BeOfType<PasswordChangedEvent>()
             .Which.UserId.Should().Be(user.Id);
     }
+
+    [Fact]
+    public void UpdateProfile_changes_the_display_name()
+    {
+        var user = Register();
+        user.ClearDomainEvents();
+
+        user.UpdateProfile(DisplayName.Create("Augusta King"));
+
+        user.DisplayName.Value.Should().Be("Augusta King");
+        user.DomainEvents.Should().BeEmpty();
+    }
 }
