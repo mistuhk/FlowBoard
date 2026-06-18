@@ -5,6 +5,8 @@ using FlowBoard.Modules.Identity.Application.Commands.LoginUser;
 using FlowBoard.Modules.Identity.Application.Commands.Logout;
 using FlowBoard.Modules.Identity.Application.Commands.RefreshToken;
 using FlowBoard.Modules.Identity.Application.Commands.RegisterUser;
+using FlowBoard.Modules.Identity.Application.Commands.RequestPasswordReset;
+using FlowBoard.Modules.Identity.Application.Commands.ResetPassword;
 using FlowBoard.Modules.Identity.Application.Commands.VerifyEmail;
 using FlowBoard.Modules.Identity.Presentation.Contracts;
 using MediatR;
@@ -167,6 +169,52 @@ public sealed class AuthController(ISender sender) : ControllerBase
 
         ClearRefreshTokenCookie();
         return NoContent();
+    }
+
+    /// <summary>
+    /// Starts the password-reset flow for an email address. Always returns the same response so it
+    /// cannot be used to discover whether an email is registered.
+    /// </summary>
+    /// <param name="request">The email address to send a reset link to.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><c>202 Accepted</c> regardless of whether the email belongs to an account.</returns>
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> ForgotPassword(
+        [FromBody] ForgotPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        await sender.Send(new RequestPasswordResetCommand(request.Email), cancellationToken);
+        return Accepted();
+    }
+
+    /// <summary>
+    /// Completes a password reset: sets a new password from a valid reset token and revokes the
+    /// account's existing sessions.
+    /// </summary>
+    /// <param name="request">The reset token and the new password.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>
+    /// <c>204 No Content</c> when the password is changed; <c>400 Bad Request</c> if the token is
+    /// invalid, expired, or already used; <c>422 Unprocessable Entity</c> if the new password fails
+    /// the strength policy.
+    /// </returns>
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> ResetPassword(
+        [FromBody] ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(
+            new ResetPasswordCommand(request.Token, request.NewPassword),
+            cancellationToken);
+
+        return result.IsSuccess
+            ? NoContent()
+            : ToProblem(result.Error, StatusCodes.Status400BadRequest, "Bad Request", "invalid-password-reset-token");
     }
 
     /// <summary>The name of the cookie carrying the refresh token.</summary>

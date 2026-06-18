@@ -71,8 +71,8 @@ public sealed class LoginEndpointTests(FlowBoardApiFactory factory)
 
         using var scope = factory.Services.CreateScope();
         var cache = scope.ServiceProvider.GetRequiredService<ICacheService>();
-        var storedUserId = await cache.GetAsync<string>(RefreshTokens.Key(refreshToken!));
-        storedUserId.Should().Be(userId.ToString());
+        var storedEntry = await cache.GetAsync<RefreshTokenEntry>(RefreshTokens.Key(refreshToken!));
+        storedEntry!.UserId.Should().Be(userId.ToString());
     }
 
     [Fact]

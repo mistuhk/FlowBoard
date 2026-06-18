@@ -70,4 +70,33 @@ public sealed class UserTests
         user.IsEmailVerified.Should().BeTrue();
         user.DomainEvents.Should().BeEmpty();
     }
+
+    [Fact]
+    public void RequestPasswordReset_raises_PasswordResetRequestedEvent_carrying_the_id_and_email()
+    {
+        var user = Register();
+        user.ClearDomainEvents();
+
+        user.RequestPasswordReset();
+
+        var @event = user.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<PasswordResetRequestedEvent>().Subject;
+        @event.UserId.Should().Be(user.Id);
+        @event.Email.Should().Be("ada.lovelace@example.com");
+    }
+
+    [Fact]
+    public void ChangePassword_replaces_the_hash_and_raises_PasswordChangedEvent()
+    {
+        var user = Register();
+        user.ClearDomainEvents();
+        var newHash = HashedPassword.FromHash("$argon2id$v=19$m=65536,t=3,p=1$new$hash");
+
+        user.ChangePassword(newHash);
+
+        user.Password.Should().Be(newHash);
+        user.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<PasswordChangedEvent>()
+            .Which.UserId.Should().Be(user.Id);
+    }
 }

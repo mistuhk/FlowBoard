@@ -46,11 +46,14 @@ public sealed class LoginUserCommandHandler(
         var accessToken = accessTokenGenerator.Generate(user);
 
         // Opaque refresh token, stored server-side so it can be rotated and revoked. It self-expires
-        // after 30 days, so a token left behind by a rolled-back transaction harmlessly lapses.
+        // after 30 days, so a token left behind by a rolled-back transaction harmlessly lapses. The
+        // token records the user's current token version so a later password reset can invalidate it.
+        // A missing version key reads back as 0, the default for a user who has never had a reset.
+        var version = await cache.GetAsync<int>(RefreshTokens.VersionKey(user.Id), cancellationToken);
         var refreshToken = RefreshTokens.GenerateToken();
         await cache.SetAsync(
             RefreshTokens.Key(refreshToken),
-            user.Id.Value.ToString(),
+            new RefreshTokenEntry(user.Id.Value.ToString(), version),
             RefreshTokens.Ttl,
             cancellationToken);
 

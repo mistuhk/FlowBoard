@@ -91,4 +91,27 @@ public sealed class User : AggregateRoot<UserId>
     {
         LastLoginAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Records that the user has requested a password reset and raises
+    /// <see cref="PasswordResetRequestedEvent"/> so the reset email is sent from the outbox.
+    /// Changes no state: the reset token itself lives in the cache, not on the aggregate.
+    /// </summary>
+    public void RequestPasswordReset()
+    {
+        Raise(new PasswordResetRequestedEvent(Id, Email.Value));
+    }
+
+    /// <summary>
+    /// Replaces the user's password with an already-hashed value and raises
+    /// <see cref="PasswordChangedEvent"/>. Hashing is performed by <c>IPasswordHasher</c> in the
+    /// Application layer; the aggregate never sees the plaintext.
+    /// </summary>
+    /// <param name="newPassword">The new, already-computed password hash.</param>
+    public void ChangePassword(HashedPassword newPassword)
+    {
+        Password = newPassword;
+
+        Raise(new PasswordChangedEvent(Id));
+    }
 }

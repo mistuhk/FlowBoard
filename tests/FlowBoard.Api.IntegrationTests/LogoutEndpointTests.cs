@@ -28,7 +28,7 @@ public sealed class LogoutEndpointTests(FlowBoardApiFactory factory)
     {
         using var scope = factory.Services.CreateScope();
         var cache = scope.ServiceProvider.GetRequiredService<ICacheService>();
-        return await cache.GetAsync<string>(RefreshTokens.Key(refreshToken)) is not null;
+        return await cache.GetAsync<RefreshTokenEntry>(RefreshTokens.Key(refreshToken)) is not null;
     }
 
     [Fact]

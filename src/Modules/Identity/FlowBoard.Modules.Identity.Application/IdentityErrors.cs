@@ -36,4 +36,9 @@ public static class IdentityErrors
     public static readonly Error InvalidRefreshToken = new(
         "Identity.InvalidRefreshToken",
         "The refresh token is invalid or has expired.");
+
+    /// <summary>Returned when a password-reset token is unknown, expired, or already used.</summary>
+    public static readonly Error InvalidPasswordResetToken = new(
+        "Identity.InvalidPasswordResetToken",
+        "The password reset token is invalid or has expired.");
 }

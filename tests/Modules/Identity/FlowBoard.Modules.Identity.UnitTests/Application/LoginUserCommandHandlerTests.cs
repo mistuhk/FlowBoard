@@ -60,7 +60,7 @@ public sealed class LoginUserCommandHandlerTests
         _cache.Verify(
             c => c.SetAsync(
                 RefreshTokens.Key(result.Value.RefreshToken),
-                user.Id.Value.ToString(),
+                It.Is<RefreshTokenEntry>(e => e.UserId == user.Id.Value.ToString() && e.Version == 0),
                 RefreshTokens.Ttl,
                 It.IsAny<CancellationToken>()),
             Times.Once);

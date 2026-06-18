@@ -25,13 +25,21 @@ public sealed class RefreshTokenCommandHandler(
         CancellationToken cancellationToken)
     {
         // Atomic consume: the first caller to redeem the token gets the value, any other gets null.
-        var userIdValue = await cache.GetAndRemoveAsync<string>(
+        var entry = await cache.GetAndRemoveAsync<RefreshTokenEntry>(
             RefreshTokens.Key(request.RefreshToken), cancellationToken);
 
-        if (userIdValue is null || !Guid.TryParse(userIdValue, out var guid))
+        if (entry is null || !Guid.TryParse(entry.UserId, out var guid))
             return Result.Failure<RefreshTokenResponse>(IdentityErrors.InvalidRefreshToken);
 
-        var user = await users.GetByIdAsync(UserId.From(guid), cancellationToken);
+        var userId = UserId.From(guid);
+
+        // Reject a token whose version is stale, that is, one issued before a password reset
+        // bumped the user's token version.
+        var currentVersion = await cache.GetAsync<int>(RefreshTokens.VersionKey(userId), cancellationToken);
+        if (entry.Version != currentVersion)
+            return Result.Failure<RefreshTokenResponse>(IdentityErrors.InvalidRefreshToken);
+
+        var user = await users.GetByIdAsync(userId, cancellationToken);
         if (user is null)
             return Result.Failure<RefreshTokenResponse>(IdentityErrors.InvalidRefreshToken);
 
@@ -40,7 +48,7 @@ public sealed class RefreshTokenCommandHandler(
         var newRefreshToken = RefreshTokens.GenerateToken();
         await cache.SetAsync(
             RefreshTokens.Key(newRefreshToken),
-            user.Id.Value.ToString(),
+            new RefreshTokenEntry(user.Id.Value.ToString(), currentVersion),
             RefreshTokens.Ttl,
             cancellationToken);
 

@@ -27,7 +27,8 @@ public sealed class RefreshEndpointTests(FlowBoardApiFactory factory)
     {
         using var scope = factory.Services.CreateScope();
         var cache = scope.ServiceProvider.GetRequiredService<ICacheService>();
-        return await cache.GetAsync<string>(RefreshTokens.Key(refreshToken));
+        var entry = await cache.GetAsync<RefreshTokenEntry>(RefreshTokens.Key(refreshToken));
+        return entry?.UserId;
     }
 
     [Fact]
