@@ -34,6 +34,15 @@ public sealed class Email : ValueObject
         return new Email(normalised);
     }
 
+    /// <summary>
+    /// Rehydrates an <see cref="Email"/> from an already-validated, normalised value,
+    /// used by EF Core when materialising a stored row. Skips validation, so it must only
+    /// be called with values that were produced by <see cref="Create"/>.
+    /// </summary>
+    /// <param name="normalisedValue">The stored, already-normalised email value.</param>
+    /// <returns>An <see cref="Email"/> wrapping the value.</returns>
+    public static Email FromPersistence(string normalisedValue) => new(normalisedValue);
+
     /// <inheritdoc/>
     protected override IEnumerable<object?> GetEqualityComponents()
     {

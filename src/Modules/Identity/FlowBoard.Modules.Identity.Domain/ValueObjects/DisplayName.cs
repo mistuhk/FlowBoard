@@ -34,6 +34,15 @@ public sealed class DisplayName : ValueObject
             : new DisplayName(trimmed);
     }
 
+    /// <summary>
+    /// Rehydrates a <see cref="DisplayName"/> from an already-validated value, used by
+    /// EF Core when materialising a stored row. Skips validation, so it must only be
+    /// called with values that were produced by <see cref="Create"/>.
+    /// </summary>
+    /// <param name="trimmedValue">The stored, already-trimmed display name value.</param>
+    /// <returns>A <see cref="DisplayName"/> wrapping the value.</returns>
+    public static DisplayName FromPersistence(string trimmedValue) => new(trimmedValue);
+
     /// <inheritdoc/>
     protected override IEnumerable<object?> GetEqualityComponents()
     {

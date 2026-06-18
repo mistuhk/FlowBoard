@@ -1,5 +1,6 @@
 using FlowBoard.Application.Abstractions;
 using FlowBoard.Infrastructure.Caching;
+using FlowBoard.Infrastructure.Messaging;
 using FlowBoard.Infrastructure.Persistence;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -41,10 +42,11 @@ public static class DependencyInjection
                 .UseNpgsql(postgresConnectionString, npgsql =>
                 {
                     npgsql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure(
-                        maxRetryCount: 3,
-                        maxRetryDelay: TimeSpan.FromSeconds(5),
-                        errorCodesToAdd: null);
+                    // No retrying execution strategy: every command runs inside an explicit
+                    // transaction (UnitOfWork + SET LOCAL for RLS), and Npgsql's retrying
+                    // strategy is incompatible with user-initiated transactions.
+                    // To support transient-failure resilience, i need to wrap each command
+                    // in an execution strategy rather than relying on EnableRetryOnFailure here.
                 })
                 .UseSnakeCaseNamingConvention()  // Maps C# PascalCase -> snake_case columns
         );
@@ -56,6 +58,10 @@ public static class DependencyInjection
             ConnectionMultiplexer.Connect(redisConnectionString));
 
         services.AddScoped<ICacheService, RedisCacheService>();
+
+        // Placeholder email transport so handlers depending on IEmailService can be
+        // constructed. Replaced by the real SMTP implementation in Sprint 6.
+        services.AddScoped<IEmailService, NoOpEmailService>();
 
         // Hangfire
         services.AddHangfire(config => config

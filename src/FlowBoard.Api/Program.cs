@@ -1,3 +1,4 @@
+using FlowBoard.Api.Authentication;
 using FlowBoard.Api.Middleware;
 using FlowBoard.Api.Services;
 using FlowBoard.Application.Abstractions;
@@ -35,8 +36,11 @@ builder.Services.AddNotificationsModule(builder.Configuration);
 builder.Services.AddActivityLogModule(builder.Configuration);
 builder.Services.AddSearchModule(builder.Configuration);
 
-builder.Services.AddScoped<ICurrentUserService, NullCurrentUserService>();
+builder.Services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
 builder.Services.AddScoped<ITenantContext, NullTenantContext>();
+
+// JWT bearer authentication: issuer/audience/lifetime/RS256 signature validation.
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // MediatR: Each module's AddXModule() call loads its assembly into the AppDomain.
 // GetAssemblies() is called AFTER module registration to capture all of them.
