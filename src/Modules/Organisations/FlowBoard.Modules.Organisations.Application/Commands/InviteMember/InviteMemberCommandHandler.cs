@@ -15,7 +15,8 @@ namespace FlowBoard.Modules.Organisations.Application.Commands.InviteMember;
 /// </summary>
 public sealed class InviteMemberCommandHandler(
     ICurrentUserService currentUser,
-    IOrganisationRepository organisations)
+    IOrganisationRepository organisations,
+    ICacheService cache)
     : IRequestHandler<InviteMemberCommand, Result<InvitationResponse>>
 {
     /// <inheritdoc/>
@@ -36,6 +37,15 @@ public sealed class InviteMemberCommandHandler(
         organisation.InviteMember(request.Email, role, currentUser.UserId, tokenHash);
 
         var invitation = organisation.Invitations.First(i => i.TokenHash == tokenHash);
+
+        // Stash the raw token so the asynchronous MemberInvitedEvent handler can build the accept
+        // link for the email. Only the hash is persisted; the raw token lives only here and in the
+        // response. The entry lapses with the invitation.
+        await cache.SetAsync(
+            InvitationTokens.PendingKey(organisation.Id, invitation.InvitedEmail),
+            token,
+            InvitationTokens.PendingTtl,
+            cancellationToken);
 
         return Result.Success(new InvitationResponse(
             invitation.Id.Value,

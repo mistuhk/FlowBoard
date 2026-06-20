@@ -15,6 +15,7 @@ public sealed class InviteMemberCommandHandlerTests
 {
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly Mock<IOrganisationRepository> _organisations = new();
+    private readonly Mock<ICacheService> _cache = new();
     private readonly UserId _ownerId = UserId.New();
 
     private static Organisation NewOrganisation(UserId ownerId) =>
@@ -26,7 +27,7 @@ public sealed class InviteMemberCommandHandlerTests
     private InviteMemberCommandHandler CreateHandler(UserId callerId)
     {
         _currentUser.Setup(c => c.UserId).Returns(callerId);
-        return new InviteMemberCommandHandler(_currentUser.Object, _organisations.Object);
+        return new InviteMemberCommandHandler(_currentUser.Object, _organisations.Object, _cache.Object);
     }
 
     [Fact]
