@@ -94,3 +94,16 @@ public readonly record struct MembershipId(Guid Value)
     /// <inheritdoc/>
     public override string ToString() => Value.ToString();
 }
+
+/// <summary>Strongly-typed identifier for an <c>Invitation</c> entity (child of <c>Organisation</c>).</summary>
+public readonly record struct InvitationId(Guid Value)
+{
+    /// <summary>Creates a new <see cref="InvitationId"/> with a randomly generated value.</summary>
+    public static InvitationId New() => new(Guid.NewGuid());
+
+    /// <summary>Creates an <see cref="InvitationId"/> from an existing <see cref="Guid"/>.</summary>
+    public static InvitationId From(Guid value) => new(value);
+
+    /// <inheritdoc/>
+    public override string ToString() => Value.ToString();
+}

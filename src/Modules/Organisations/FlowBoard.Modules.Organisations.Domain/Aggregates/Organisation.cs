@@ -16,6 +16,7 @@ namespace FlowBoard.Modules.Organisations.Domain.Aggregates;
 public sealed class Organisation : AggregateRoot<OrganisationId>
 {
     private readonly List<Membership> _memberships = [];
+    private readonly List<Invitation> _invitations = [];
 
     /// <summary>Parameterless constructor required for EF Core materialisation.</summary>
     private Organisation() { }
@@ -31,6 +32,9 @@ public sealed class Organisation : AggregateRoot<OrganisationId>
 
     /// <summary>The organisation's memberships. Read-only: mutated only through aggregate behaviour.</summary>
     public IReadOnlyList<Membership> Memberships => _memberships.AsReadOnly();
+
+    /// <summary>The organisation's invitations. Read-only: mutated only through aggregate behaviour.</summary>
+    public IReadOnlyList<Invitation> Invitations => _invitations.AsReadOnly();
 
     /// <summary>
     /// UTC timestamp of the most recent change to this aggregate.
@@ -102,4 +106,88 @@ public sealed class Organisation : AggregateRoot<OrganisationId>
         DeletedAt = DateTime.UtcNow;
         Raise(new OrganisationDeletedEvent(Id));
     }
+
+    /// <summary>
+    /// Invites a person (by email) to join the organisation in the given role, and raises
+    /// <see cref="MemberInvitedEvent"/>. Only an Admin or the Owner may invite. The invitee
+    /// cannot be invited as Owner, and a person with a still-pending invitation cannot be
+    /// invited again.
+    /// </summary>
+    /// <param name="invitedEmail">The invitee's email address. Normalised (trimmed, lowercased).</param>
+    /// <param name="role">The role the invitee will hold once they accept. Must not be Owner.</param>
+    /// <param name="invitedById">The user issuing the invitation. Must be an Admin or the Owner.</param>
+    /// <param name="tokenHash">The hash of the single-use invitation token, computed by the caller.</param>
+    /// <exception cref="ForbiddenException">Thrown if the inviter is not an Admin or the Owner.</exception>
+    /// <exception cref="DomainException">Thrown if the role is Owner or a pending invitation already exists for the email.</exception>
+    public void InviteMember(string invitedEmail, MemberRole role, UserId invitedById, string tokenHash)
+    {
+        var inviter = MembershipFor(invitedById);
+        if (inviter is null || !inviter.Role.IsAtLeast(MemberRole.Admin))
+            throw new ForbiddenException("Only an Admin or the Owner may invite members.");
+
+        if (role == MemberRole.Owner)
+            throw new DomainException("A member cannot be invited as Owner.");
+
+        var email = Normalise(invitedEmail);
+        var now = DateTime.UtcNow;
+
+        if (_invitations.Any(i => i.IsPending(now) && i.InvitedEmail == email))
+            throw new DomainException("A pending invitation already exists for this email address.");
+
+        _invitations.Add(Invitation.Issue(Id, email, role, invitedById, tokenHash));
+
+        Raise(new MemberInvitedEvent(Id, email, invitedById, role.Name));
+    }
+
+    /// <summary>
+    /// Accepts a pending invitation identified by its token hash, adding the accepting user as a
+    /// member in the invitation's role, and raises <see cref="MemberJoinedEvent"/>.
+    /// </summary>
+    /// <param name="tokenHash">The hash of the token presented by the invitee.</param>
+    /// <param name="userId">The authenticated user accepting the invitation.</param>
+    /// <exception cref="DomainException">
+    /// Thrown if no matching invitation exists, the invitation has expired or was already used,
+    /// or the user is already a member.
+    /// </exception>
+    public void AcceptInvitation(string tokenHash, UserId userId)
+    {
+        var now = DateTime.UtcNow;
+
+        var invitation = _invitations.FirstOrDefault(i => i.TokenHash == tokenHash)
+            ?? throw new DomainException("The invitation is invalid.");
+
+        if (!invitation.IsPending(now))
+            throw new DomainException("The invitation has expired or has already been used.");
+
+        if (MembershipFor(userId) is not null)
+            throw new DomainException("The user is already a member of this organisation.");
+
+        invitation.MarkAccepted(now);
+        _memberships.Add(Membership.Create(Id, userId, invitation.Role, invitation.InvitedById));
+
+        Raise(new MemberJoinedEvent(Id, userId, invitation.Role.Name));
+    }
+
+    /// <summary>
+    /// Declines a pending invitation identified by its token hash, removing it. Raises no event.
+    /// </summary>
+    /// <param name="tokenHash">The hash of the token presented by the invitee.</param>
+    /// <exception cref="DomainException">
+    /// Thrown if no matching invitation exists or it has expired or was already used.
+    /// </exception>
+    public void DeclineInvitation(string tokenHash)
+    {
+        var invitation = _invitations.FirstOrDefault(i => i.TokenHash == tokenHash)
+            ?? throw new DomainException("The invitation is invalid.");
+
+        if (!invitation.IsPending(DateTime.UtcNow))
+            throw new DomainException("The invitation has expired or has already been used.");
+
+        _invitations.Remove(invitation);
+    }
+
+    private Membership? MembershipFor(UserId userId) =>
+        _memberships.FirstOrDefault(m => m.UserId == userId);
+
+    private static string Normalise(string email) => email.Trim().ToLowerInvariant();
 }
