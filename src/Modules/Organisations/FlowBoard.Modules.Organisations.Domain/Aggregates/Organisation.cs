@@ -69,10 +69,18 @@ public sealed class Organisation : AggregateRoot<OrganisationId>
         return organisation;
     }
 
-    /// <summary>Renames the organisation. The new name is already validated by <see cref="OrganisationName"/>.</summary>
+    /// <summary>
+    /// Renames the organisation. Only the owner may rename it. The new name is already
+    /// validated by <see cref="OrganisationName"/>.
+    /// </summary>
     /// <param name="name">The new organisation name.</param>
-    public void Rename(OrganisationName name)
+    /// <param name="renamedById">The user attempting the rename.</param>
+    /// <exception cref="ForbiddenException">Thrown if the caller is not the owner.</exception>
+    public void Rename(OrganisationName name, UserId renamedById)
     {
+        if (renamedById != OwnerId)
+            throw new ForbiddenException("Only the organisation owner may rename the organisation.");
+
         Name = name;
     }
 

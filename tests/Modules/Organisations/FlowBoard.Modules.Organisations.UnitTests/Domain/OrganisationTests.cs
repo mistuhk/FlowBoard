@@ -68,15 +68,27 @@ public sealed class OrganisationTests
     }
 
     [Fact]
-    public void Rename_changes_the_name_and_raises_no_event()
+    public void Rename_by_the_owner_changes_the_name_and_raises_no_event()
     {
         var organisation = Create();
         organisation.ClearDomainEvents();
 
-        organisation.Rename(OrganisationName.Create("Acme Global"));
+        organisation.Rename(OrganisationName.Create("Acme Global"), OwnerId);
 
         organisation.Name.Value.Should().Be("Acme Global");
         organisation.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Rename_by_a_non_owner_throws_and_leaves_the_name_unchanged()
+    {
+        var organisation = Create();
+        var stranger = UserId.New();
+
+        var act = () => organisation.Rename(OrganisationName.Create("Acme Global"), stranger);
+
+        act.Should().Throw<ForbiddenException>();
+        organisation.Name.Value.Should().Be("Acme Industries");
     }
 
     [Fact]

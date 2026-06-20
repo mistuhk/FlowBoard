@@ -54,6 +54,17 @@ public sealed class MemberRole : ValueObject
         All.FirstOrDefault(role => role.Name == name)
         ?? throw new DomainException($"'{name}' is not a recognised member role.");
 
+    /// <summary>
+    /// Rehydrates a <see cref="MemberRole"/> from its persisted token, matching
+    /// case-insensitively. Roles are stored in lowercase (for example <c>owner</c>).
+    /// </summary>
+    /// <param name="value">The stored role token.</param>
+    /// <returns>The matching <see cref="MemberRole"/>.</returns>
+    /// <exception cref="DomainException">Thrown if no role matches the stored token.</exception>
+    public static MemberRole FromPersistence(string value) =>
+        All.FirstOrDefault(role => string.Equals(role.Name, value, StringComparison.OrdinalIgnoreCase))
+        ?? throw new DomainException($"'{value}' is not a recognised member role.");
+
     /// <inheritdoc/>
     protected override IEnumerable<object?> GetEqualityComponents()
     {
