@@ -316,7 +316,10 @@ step 5, the outbox record remains unprocessed and will be retried. Handlers must
 ### Token Strategy
 
 - **Access Token**: JWT, signed RS256, 15-minute lifetime.
-  Claims: `sub` (userId), `org_id`, `role`, `email`, `jti`.
+  Claims: `sub` (userId), `email`, `jti`. The token is scoped to identity only; it carries
+  no `org_id` or `role`. A user may belong to several organisations with a different role in
+  each, so the active organisation is taken from the request route and the role is resolved
+  per request (see Tenant Isolation Middleware), not baked into the token.
 - **Refresh Token**: Opaque random string, stored as a Redis key with 30-day TTL.
   Rotated on every use (old token is deleted atomically when issuing the new one).
 
@@ -330,7 +333,8 @@ added to a Redis blocklist TTL'd to the access token's remaining lifetime.
 
 Authorisation uses a combination of:
 
-1. **JWT role claim**, coarse-grained gate (e.g. "must be Admin or Owner")
+1. **Membership role**, resolved per request from the user's membership of the route
+   organisation, coarse-grained gate (e.g. "must be Admin or Owner")
 2. **Policy-based authorisation** via ASP.NET Core `IAuthorizationHandler`, fine-grained
    checks (e.g. "must be a member of this specific organisation")
 
@@ -338,16 +342,25 @@ Authorisation uses a combination of:
 
 ## 7. Tenant Isolation Middleware
 
-The `TenantResolutionMiddleware` runs on every request and:
+The `TenantResolutionMiddleware` runs on org-scoped requests and:
 
-1. Extracts `org_id` from the JWT claims
-2. Validates the user is an active member of that organisation
+1. Reads the organisation id from the request route (org-owned resources are nested under
+   `/api/v1/organisations/{orgId}/...`)
+2. Validates the authenticated user is an active member of that organisation, and resolves
+   their role for authorisation
 3. Populates `ITenantContext.CurrentOrganisationId`
-4. Sets the Postgres session parameter: `SET app.current_organisation_id = '{orgId}'`
+4. Sets the Postgres session parameter via `set_config('app.current_organisation_id', '{orgId}', true)`
+   inside the command transaction
 
 All repositories read `ITenantContext.CurrentOrganisationId` and append
 `WHERE organisation_id = @orgId` to every query. RLS enforces this at the database level
 as a defence-in-depth measure.
+
+The organisation lifecycle endpoints (`/api/v1/organisations`) are not tenant-scoped: creating
+an organisation has no prior tenant, and listing one's organisations spans every organisation
+the user belongs to. Tenant resolution, the real `ITenantContext`, and RLS policies are
+introduced with the first tenant-scoped tables (`projects` onward); until then `organisations`
+and `memberships` are intentionally not under RLS, consistent with the database schema.
 
 ---
 

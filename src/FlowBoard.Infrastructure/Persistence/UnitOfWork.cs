@@ -35,13 +35,14 @@ public sealed class UnitOfWork(AppDbContext context, ITenantContext tenantContex
         _currentTransaction = await context.Database
             .BeginTransactionAsync(cancellationToken);
 
-        // Set Postgres session variable for Row-Level Security.
-        // SET LOCAL is transaction-scoped, safe with connection pooling.
+        // Set the Postgres session variable for Row-Level Security. set_config(..., is_local => true)
+        // is the transaction-scoped equivalent of SET LOCAL and, unlike SET LOCAL, accepts a bind
+        // parameter for the value, so the organisation id is passed safely as a parameter.
         if (tenantContext.IsResolved)
         {
             var orgId = tenantContext.CurrentOrganisationId.Value.ToString();
             await context.Database.ExecuteSqlRawAsync(
-                $"SET LOCAL app.current_organisation_id = {0}", orgId);
+                "SELECT set_config('app.current_organisation_id', {0}, true)", orgId);
         }
     }
 
