@@ -23,6 +23,11 @@ internal sealed class OrganisationRepository(AppDbContext context) : IOrganisati
         context.Set<Organisation>().FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
 
     /// <inheritdoc/>
+    public Task<Organisation?> GetByInvitationTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default) =>
+        context.Set<Organisation>()
+            .FirstOrDefaultAsync(o => o.Invitations.Any(i => i.TokenHash == tokenHash), cancellationToken);
+
+    /// <inheritdoc/>
     public async Task AddAsync(Organisation organisation, CancellationToken cancellationToken = default) =>
         await context.Set<Organisation>().AddAsync(organisation, cancellationToken);
 }

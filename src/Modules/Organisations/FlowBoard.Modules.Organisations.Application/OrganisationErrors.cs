@@ -17,4 +17,9 @@ public static class OrganisationErrors
     public static readonly Error NotFound = new(
         "Organisations.NotFound",
         "The organisation could not be found.");
+
+    /// <summary>Returned when an invitation token is unknown, expired, or already used.</summary>
+    public static readonly Error InvalidInvitation = new(
+        "Organisations.InvalidInvitation",
+        "The invitation is invalid or has expired.");
 }

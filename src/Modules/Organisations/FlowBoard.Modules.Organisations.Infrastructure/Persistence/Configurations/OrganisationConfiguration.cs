@@ -84,9 +84,14 @@ public sealed class OrganisationConfiguration : IEntityTypeConfiguration<Organis
         builder.HasQueryFilter(o => o.DeletedAt == null);
 
         ConfigureMemberships(builder);
+        ConfigureInvitations(builder);
 
-        // Load memberships with their organisation; the aggregate owns the collection.
+        // Load memberships and invitations with their organisation; the aggregate owns both.
         builder.Navigation(o => o.Memberships)
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .AutoInclude();
+
+        builder.Navigation(o => o.Invitations)
             .UsePropertyAccessMode(PropertyAccessMode.Field)
             .AutoInclude();
     }
@@ -151,6 +156,78 @@ public sealed class OrganisationConfiguration : IEntityTypeConfiguration<Organis
             membership.HasIndex(m => new { m.UserId, m.OrganisationId })
                 .IsUnique()
                 .HasDatabaseName("ix_memberships_user_id_organisation_id");
+        });
+    }
+
+    private static void ConfigureInvitations(EntityTypeBuilder<Organisation> builder)
+    {
+        builder.OwnsMany(o => o.Invitations, invitation =>
+        {
+            invitation.ToTable("invitations", table =>
+                table.HasCheckConstraint(
+                    "chk_invitations_role",
+                    "role IN ('admin', 'member', 'guest')"));
+
+            invitation.HasKey(i => i.Id);
+
+            invitation.Property(i => i.Id)
+                .HasColumnName("id")
+                .HasConversion(id => id.Value, value => InvitationId.From(value))
+                .ValueGeneratedNever();
+
+            // organisation_id is the foreign key back to the owning aggregate.
+            invitation.WithOwner().HasForeignKey(i => i.OrganisationId);
+            invitation.Property(i => i.OrganisationId)
+                .HasColumnName("organisation_id")
+                .HasConversion(id => id.Value, value => OrganisationId.From(value));
+
+            invitation.Property(i => i.InvitedEmail)
+                .HasColumnName("invited_email")
+                .HasMaxLength(254)
+                .IsRequired();
+
+            invitation.Property(i => i.InvitedById)
+                .HasColumnName("invited_by_id")
+                .HasConversion(id => id.Value, value => UserId.From(value))
+                .IsRequired();
+
+            invitation.Property(i => i.TokenHash)
+                .HasColumnName("token_hash")
+                .IsRequired();
+
+            invitation.Property(i => i.Role)
+                .HasColumnName("role")
+                .HasMaxLength(20)
+                .HasConversion(
+                    role => role.Name.ToLowerInvariant(),
+                    value => MemberRole.FromPersistence(value))
+                .IsRequired();
+
+            invitation.Property(i => i.ExpiresAt)
+                .HasColumnName("expires_at")
+                .IsRequired();
+
+            invitation.Property(i => i.AcceptedAt)
+                .HasColumnName("accepted_at");
+
+            invitation.Property(i => i.CreatedAt)
+                .HasColumnName("created_at")
+                .IsRequired();
+
+            invitation.HasIndex(i => i.TokenHash)
+                .IsUnique()
+                .HasDatabaseName("ix_invitations_token_hash");
+
+            invitation.HasIndex(i => i.OrganisationId)
+                .HasDatabaseName("ix_invitations_organisation_id");
+
+            invitation.HasIndex(i => i.InvitedEmail)
+                .HasDatabaseName("ix_invitations_email");
+
+            // Pending invitations only: supports the expiry job and duplicate-invite checks.
+            invitation.HasIndex(i => new { i.OrganisationId, i.ExpiresAt })
+                .HasDatabaseName("ix_invitations_pending")
+                .HasFilter("accepted_at IS NULL");
         });
     }
 }

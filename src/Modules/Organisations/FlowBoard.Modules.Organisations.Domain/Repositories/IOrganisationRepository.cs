@@ -28,6 +28,16 @@ public interface IOrganisationRepository
     Task<Organisation?> GetByIdAsync(OrganisationId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Loads the tracked <see cref="Organisation"/> that holds an invitation with the given token
+    /// hash, or <c>null</c> if none does. Used by the accept and decline flows, where the caller
+    /// presents a token rather than an organisation id. The aggregate is loaded with its
+    /// invitations and memberships so the acceptance can be applied.
+    /// </summary>
+    /// <param name="tokenHash">The hash of the presented invitation token.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    Task<Organisation?> GetByInvitationTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Adds a newly created <see cref="Organisation"/> to the unit of work. The change is not
     /// persisted until the surrounding transaction calls <c>SaveChangesAsync</c>.
     /// </summary>
