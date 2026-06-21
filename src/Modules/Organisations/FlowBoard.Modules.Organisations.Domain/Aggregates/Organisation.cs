@@ -186,6 +186,98 @@ public sealed class Organisation : AggregateRoot<OrganisationId>
         _invitations.Remove(invitation);
     }
 
+    /// <summary>
+    /// Changes a member's role and raises <see cref="MemberRoleChangedEvent"/>. The caller must
+    /// outrank both the member's current role and the new role, so no one can promote a member to
+    /// their own level or above. Ownership is never assigned this way (use
+    /// <see cref="TransferOwnership"/>). A no-op change (same role) raises no event.
+    /// </summary>
+    /// <param name="targetUserId">The member whose role is changing.</param>
+    /// <param name="newRole">The new role. Must not be Owner.</param>
+    /// <param name="changedById">The user making the change.</param>
+    /// <exception cref="ForbiddenException">Thrown if the caller does not outrank the member and the new role.</exception>
+    /// <exception cref="DomainException">Thrown if the new role is Owner or the target is not a member.</exception>
+    public void ChangeMemberRole(UserId targetUserId, MemberRole newRole, UserId changedById)
+    {
+        if (newRole == MemberRole.Owner)
+            throw new DomainException("Ownership is transferred, not assigned as a role.");
+
+        var changer = MembershipFor(changedById)
+            ?? throw new ForbiddenException("Only a member may change roles.");
+
+        var target = MembershipFor(targetUserId)
+            ?? throw new DomainException("The target user is not a member of this organisation.");
+
+        if (!changer.Role.Outranks(target.Role) || !changer.Role.Outranks(newRole))
+            throw new ForbiddenException("You must outrank both the member's current and new role.");
+
+        if (target.Role == newRole)
+            return;
+
+        var oldRole = target.Role;
+        target.ChangeRole(newRole);
+
+        Raise(new MemberRoleChangedEvent(Id, targetUserId, oldRole.Name, newRole.Name));
+    }
+
+    /// <summary>
+    /// Removes a member and raises <see cref="MemberRemovedEvent"/>. The Owner cannot be removed
+    /// (transfer ownership first), and the caller must outrank the member being removed.
+    /// </summary>
+    /// <param name="targetUserId">The member to remove.</param>
+    /// <param name="removedById">The user performing the removal.</param>
+    /// <exception cref="ForbiddenException">Thrown if the caller does not outrank the member.</exception>
+    /// <exception cref="DomainException">Thrown if the target is the Owner or not a member.</exception>
+    public void RemoveMember(UserId targetUserId, UserId removedById)
+    {
+        var remover = MembershipFor(removedById)
+            ?? throw new ForbiddenException("Only a member may remove members.");
+
+        var target = MembershipFor(targetUserId)
+            ?? throw new DomainException("The target user is not a member of this organisation.");
+
+        if (target.Role == MemberRole.Owner)
+            throw new DomainException("The owner cannot be removed. Transfer ownership first.");
+
+        if (!remover.Role.Outranks(target.Role))
+            throw new ForbiddenException("You must outrank the member you are removing.");
+
+        _memberships.Remove(target);
+
+        Raise(new MemberRemovedEvent(Id, targetUserId, removedById));
+    }
+
+    /// <summary>
+    /// Transfers ownership to another existing member and raises
+    /// <see cref="OwnershipTransferredEvent"/>. Only the current owner may transfer. The previous
+    /// owner is demoted to Admin and the new owner takes the Owner role, preserving the invariant
+    /// that there is exactly one owner.
+    /// </summary>
+    /// <param name="newOwnerId">The member to transfer ownership to.</param>
+    /// <param name="currentOwnerId">The user attempting the transfer. Must be the current owner.</param>
+    /// <exception cref="ForbiddenException">Thrown if the caller is not the current owner.</exception>
+    /// <exception cref="DomainException">Thrown if the new owner is already the owner or is not a member.</exception>
+    public void TransferOwnership(UserId newOwnerId, UserId currentOwnerId)
+    {
+        if (currentOwnerId != OwnerId)
+            throw new ForbiddenException("Only the owner may transfer ownership.");
+
+        if (newOwnerId == OwnerId)
+            throw new DomainException("The nominated user is already the owner.");
+
+        var newOwner = MembershipFor(newOwnerId)
+            ?? throw new DomainException("Ownership can only be transferred to an existing member.");
+
+        var currentOwner = MembershipFor(OwnerId)
+            ?? throw new DomainException("The current owner membership is missing.");
+
+        currentOwner.ChangeRole(MemberRole.Admin);
+        newOwner.ChangeRole(MemberRole.Owner);
+        OwnerId = newOwnerId;
+
+        Raise(new OwnershipTransferredEvent(Id, currentOwnerId, newOwnerId));
+    }
+
     private Membership? MembershipFor(UserId userId) =>
         _memberships.FirstOrDefault(m => m.UserId == userId);
 

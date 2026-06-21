@@ -59,4 +59,11 @@ public sealed class Membership : Entity<MembershipId>
         MemberRole role,
         UserId? invitedById) =>
         new(MembershipId.New(), organisationId, userId, role, invitedById, DateTime.UtcNow);
+
+    /// <summary>
+    /// Changes the member's role. Internal to the aggregate: role changes are authorised and
+    /// applied through <c>Organisation.ChangeMemberRole</c> and <c>Organisation.TransferOwnership</c>.
+    /// </summary>
+    /// <param name="role">The new role.</param>
+    internal void ChangeRole(MemberRole role) => Role = role;
 }
