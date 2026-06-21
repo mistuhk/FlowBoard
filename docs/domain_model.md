@@ -302,15 +302,22 @@ Project
 
 ## 6. Bounded Context: Tasks
 
-**Aggregate Root: `Task`**
+**Aggregate Root: `TaskItem`**
 
-`Task` is the richest aggregate in the domain. `Comment` and `Attachment` are entities
-owned by the `Task` aggregate, they have no meaning outside their parent task and are
+> Naming note: the C# aggregate is named `TaskItem` and its status value object
+> `TaskItemStatus`, to avoid colliding with `System.Threading.Tasks.Task` and
+> `System.Threading.Tasks.TaskStatus` (imported via implicit usings across an async
+> codebase). The database table remains `tasks`, the API routes remain `/tasks`, the
+> strongly-typed identifier remains `TaskId`, and the domain event names are unchanged.
+> The domain concept is still "task" throughout.
+
+`TaskItem` is the richest aggregate in the domain. `Comment` and `Attachment` are entities
+owned by the `TaskItem` aggregate, they have no meaning outside their parent task and are
 never accessed independently.
 
 ### Value Objects
 
-**`TaskStatus`**
+**`TaskItemStatus`**
 ```
 Enumeration: Todo | InProgress | Blocked | Done
 - Defines valid transitions (state machine):
@@ -360,16 +367,16 @@ Enumeration: Low | Medium | High | Critical
 └── DeletedAt: DateTime?
 ```
 
-### Aggregate: `Task`
+### Aggregate: `TaskItem`
 
 ```
-Task
+TaskItem
 ├── Id: TaskId
 ├── ProjectId: ProjectId
 ├── OrganisationId: OrganisationId      (denormalised for tenant scoping)
 ├── Title: string                       (1-255 characters)
 ├── Description: string?
-├── Status: TaskStatus                  (value object with transitions)
+├── Status: TaskItemStatus              (value object with transitions)
 ├── Priority: Priority                  (value object)
 ├── AssigneeId: UserId?
 ├── CreatedById: UserId
