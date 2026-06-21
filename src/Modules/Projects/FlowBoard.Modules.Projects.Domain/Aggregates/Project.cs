@@ -1,6 +1,7 @@
 using FlowBoard.Domain.Primitives;
 using FlowBoard.Domain.Shared.Exceptions;
 using FlowBoard.Domain.Shared.ValueObjects;
+using FlowBoard.Modules.Projects.Domain.Entities;
 using FlowBoard.Modules.Projects.Domain.Events;
 using FlowBoard.Modules.Projects.Domain.ValueObjects;
 
@@ -13,6 +14,8 @@ namespace FlowBoard.Modules.Projects.Domain.Aggregates;
 /// </summary>
 public sealed class Project : AggregateRoot<ProjectId>
 {
+    private readonly List<ProjectMember> _members = [];
+
     /// <summary>Parameterless constructor required for EF Core materialisation.</summary>
     private Project() { }
 
@@ -40,8 +43,19 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// <summary>UTC timestamp at which the project was soft-deleted. <c>null</c> if active.</summary>
     public DateTime? DeletedAt { get; private set; }
 
+    /// <summary>
+    /// The project's explicit members. Read-only: mutated only through aggregate behaviour.
+    /// Used for Guest access control; non-Guest organisation members can access the project
+    /// regardless of explicit membership.
+    /// </summary>
+    public IReadOnlyList<ProjectMember> Members => _members.AsReadOnly();
+
     /// <summary>Whether the project is archived.</summary>
     public bool IsArchived => Status == ProjectStatus.Archived;
+
+    /// <summary>Returns <c>true</c> if the given user is an explicit member of this project.</summary>
+    /// <param name="userId">The user to check.</param>
+    public bool HasMember(UserId userId) => _members.Any(m => m.UserId == userId);
 
     /// <summary>
     /// Creates a new active project and raises <see cref="ProjectCreatedEvent"/>.
@@ -125,5 +139,30 @@ public sealed class Project : AggregateRoot<ProjectId>
 
         DeletedAt = DateTime.UtcNow;
         Raise(new ProjectDeletedEvent(Id, OrganisationId));
+    }
+
+    /// <summary>
+    /// Adds a user as an explicit member of the project and raises
+    /// <see cref="ProjectMemberAddedEvent"/>. Idempotent: adding an existing member is a no-op and
+    /// raises no event. Whether the user is eligible (an organisation member) is checked by the
+    /// application layer, which has access to organisation membership.
+    /// </summary>
+    /// <param name="userId">The user to add.</param>
+    public void AddMember(UserId userId)
+    {
+        if (HasMember(userId))
+            return;
+
+        _members.Add(ProjectMember.Create(Id, userId));
+        Raise(new ProjectMemberAddedEvent(Id, OrganisationId, userId));
+    }
+
+    /// <summary>Removes an explicit member from the project. A no-op if the user is not a member.</summary>
+    /// <param name="userId">The user to remove.</param>
+    public void RemoveMember(UserId userId)
+    {
+        var member = _members.FirstOrDefault(m => m.UserId == userId);
+        if (member is not null)
+            _members.Remove(member);
     }
 }

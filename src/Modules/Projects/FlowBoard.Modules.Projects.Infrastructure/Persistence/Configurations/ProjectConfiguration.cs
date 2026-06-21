@@ -86,5 +86,54 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasFilter("deleted_at IS NULL");
 
         builder.HasQueryFilter(p => p.DeletedAt == null);
+
+        ConfigureMembers(builder);
+
+        // Load the project's members with the project; the aggregate owns the collection.
+        builder.Navigation(p => p.Members)
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .AutoInclude();
+    }
+
+    private static void ConfigureMembers(EntityTypeBuilder<Project> builder)
+    {
+        builder.OwnsMany(p => p.Members, member =>
+        {
+            member.ToTable("project_members");
+
+            member.HasKey(m => m.Id);
+
+            member.Property(m => m.Id)
+                .HasColumnName("id")
+                .HasConversion(id => id.Value, value => ProjectMemberId.From(value))
+                .ValueGeneratedNever();
+
+            member.WithOwner().HasForeignKey(m => m.ProjectId);
+            member.Property(m => m.ProjectId)
+                .HasColumnName("project_id")
+                .HasConversion(id => id.Value, value => ProjectId.From(value));
+
+            member.Property(m => m.UserId)
+                .HasColumnName("user_id")
+                .HasConversion(id => id.Value, value => UserId.From(value))
+                .IsRequired();
+
+            member.Property(m => m.AddedAt)
+                .HasColumnName("added_at")
+                .IsRequired();
+
+            // project_members has no created_at column; added_at is the temporal anchor.
+            member.Ignore(m => m.CreatedAt);
+
+            member.HasIndex(m => m.ProjectId)
+                .HasDatabaseName("ix_project_members_project_id");
+
+            member.HasIndex(m => m.UserId)
+                .HasDatabaseName("ix_project_members_user_id");
+
+            member.HasIndex(m => new { m.ProjectId, m.UserId })
+                .IsUnique()
+                .HasDatabaseName("ix_project_members_project_id_user_id");
+        });
     }
 }

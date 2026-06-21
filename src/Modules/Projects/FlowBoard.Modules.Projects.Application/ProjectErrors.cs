@@ -11,4 +11,9 @@ public static class ProjectErrors
     public static readonly Error NotFound = new(
         "Projects.NotFound",
         "The project could not be found.");
+
+    /// <summary>Returned when adding a project member who is not a member of the organisation.</summary>
+    public static readonly Error UserNotOrganisationMember = new(
+        "Projects.UserNotOrganisationMember",
+        "The user must be a member of the organisation before being added to a project.");
 }
