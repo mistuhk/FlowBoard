@@ -1,8 +1,9 @@
-namespace FlowBoard.Api.Authorization;
+namespace FlowBoard.Application.Authorization;
 
 /// <summary>
 /// Names of the organisation-scoped authorisation policies. Controllers for org-owned resources
-/// decorate their actions with these via <c>[Authorize(Policy = ...)]</c>.
+/// (in any module) decorate their actions with these via <c>[Authorize(Policy = ...)]</c>. The
+/// policies themselves are configured in the API composition root.
 /// </summary>
 public static class OrganisationPolicies
 {

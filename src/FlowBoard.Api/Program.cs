@@ -3,6 +3,7 @@ using FlowBoard.Api.Authorization;
 using FlowBoard.Api.Middleware;
 using FlowBoard.Api.Services;
 using FlowBoard.Application.Abstractions;
+using FlowBoard.Application.Authorization;
 using FlowBoard.Application.Behaviours;
 using FlowBoard.Modules.Organisations.Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
