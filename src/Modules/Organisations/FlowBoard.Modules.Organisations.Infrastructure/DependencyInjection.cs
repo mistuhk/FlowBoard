@@ -1,6 +1,8 @@
+using FlowBoard.Application.Abstractions;
 using FlowBoard.Infrastructure.Persistence;
 using FlowBoard.Modules.Organisations.Domain.Repositories;
 using FlowBoard.Modules.Organisations.Infrastructure.Jobs;
+using FlowBoard.Modules.Organisations.Infrastructure.Persistence;
 using FlowBoard.Modules.Organisations.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,7 @@ public static class DependencyInjection
         _ = Application.AssemblyReference.Assembly;
 
         services.AddScoped<IOrganisationRepository, OrganisationRepository>();
+        services.AddScoped<IOrganisationMembershipReader, OrganisationMembershipReader>();
 
         // Hangfire resolves recurring jobs from the container; the hourly schedule is registered
         // in the API composition root.

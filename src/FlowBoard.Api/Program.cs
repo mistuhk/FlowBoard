@@ -1,8 +1,11 @@
 using FlowBoard.Api.Authentication;
+using FlowBoard.Api.Authorization;
 using FlowBoard.Api.Middleware;
 using FlowBoard.Api.Services;
 using FlowBoard.Application.Abstractions;
 using FlowBoard.Application.Behaviours;
+using FlowBoard.Modules.Organisations.Domain.ValueObjects;
+using Microsoft.AspNetCore.Authorization;
 using FlowBoard.Infrastructure;
 using FlowBoard.Modules.Identity.Infrastructure;
 using FlowBoard.Modules.Organisations.Infrastructure;
@@ -38,10 +41,25 @@ builder.Services.AddActivityLogModule(builder.Configuration);
 builder.Services.AddSearchModule(builder.Configuration);
 
 builder.Services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
-builder.Services.AddScoped<ITenantContext, NullTenantContext>();
+
+// Tenant context: one request-scoped instance, populated by TenantResolutionMiddleware and read
+// through the ITenantContext abstraction by repositories and the unit of work.
+builder.Services.AddScoped<TenantContext>();
+builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
 
 // JWT bearer authentication: issuer/audience/lifetime/RS256 signature validation.
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// Organisation-scoped authorisation policies. The handler resolves the caller's role in the route
+// organisation; role ranking stays in the Organisations domain.
+builder.Services.AddScoped<IAuthorizationHandler, OrganisationMembershipHandler>();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(OrganisationPolicies.Member, policy => policy
+        .RequireAuthenticatedUser()
+        .AddRequirements(new OrganisationMembershipRequirement(MemberRole.Guest)))
+    .AddPolicy(OrganisationPolicies.Admin, policy => policy
+        .RequireAuthenticatedUser()
+        .AddRequirements(new OrganisationMembershipRequirement(MemberRole.Admin)));
 
 // MediatR: Each module's AddXModule() call loads its assembly into the AppDomain.
 // GetAssemblies() is called AFTER module registration to capture all of them.
@@ -130,9 +148,10 @@ app.UseSerilogRequestLogging(options =>
 });
 
 app.UseHttpsRedirection();
-app.UseAuthentication();                           // Sprint 1 - JWT middleware
-app.UseMiddleware<TenantResolutionMiddleware>();   // Sprint 2 - tenant resolution
-app.UseAuthorization();
+app.UseRouting();                                  // Populates route values for tenant resolution
+app.UseAuthentication();                           // JWT bearer
+app.UseMiddleware<TenantResolutionMiddleware>();   // Resolves {orgId} into ITenantContext
+app.UseAuthorization();                            // Organisation membership/role policies
 app.MapControllers();
 
 // Health endpoints
