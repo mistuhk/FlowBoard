@@ -3,6 +3,7 @@ using System;
 using FlowBoard.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlowBoard.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260619210206_AddOrganisations")]
+    partial class AddOrganisations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -195,76 +198,6 @@ namespace FlowBoard.Infrastructure.Migrations
 
             modelBuilder.Entity("FlowBoard.Modules.Organisations.Domain.Aggregates.Organisation", b =>
                 {
-                    b.OwnsMany("FlowBoard.Modules.Organisations.Domain.Entities.Invitation", "Invitations", b1 =>
-                        {
-                            b1.Property<Guid>("Id")
-                                .HasColumnType("uuid")
-                                .HasColumnName("id");
-
-                            b1.Property<DateTime?>("AcceptedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("accepted_at");
-
-                            b1.Property<DateTime>("CreatedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("created_at");
-
-                            b1.Property<DateTime>("ExpiresAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("expires_at");
-
-                            b1.Property<Guid>("InvitedById")
-                                .HasColumnType("uuid")
-                                .HasColumnName("invited_by_id");
-
-                            b1.Property<string>("InvitedEmail")
-                                .IsRequired()
-                                .HasMaxLength(254)
-                                .HasColumnType("character varying(254)")
-                                .HasColumnName("invited_email");
-
-                            b1.Property<Guid>("OrganisationId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("organisation_id");
-
-                            b1.Property<string>("Role")
-                                .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("character varying(20)")
-                                .HasColumnName("role");
-
-                            b1.Property<string>("TokenHash")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("token_hash");
-
-                            b1.HasKey("Id")
-                                .HasName("pk_invitations");
-
-                            b1.HasIndex("InvitedEmail")
-                                .HasDatabaseName("ix_invitations_email");
-
-                            b1.HasIndex("OrganisationId")
-                                .HasDatabaseName("ix_invitations_organisation_id");
-
-                            b1.HasIndex("TokenHash")
-                                .IsUnique()
-                                .HasDatabaseName("ix_invitations_token_hash");
-
-                            b1.HasIndex("OrganisationId", "ExpiresAt")
-                                .HasDatabaseName("ix_invitations_pending")
-                                .HasFilter("accepted_at IS NULL");
-
-                            b1.ToTable("invitations", null, t =>
-                                {
-                                    t.HasCheckConstraint("chk_invitations_role", "role IN ('admin', 'member', 'guest')");
-                                });
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrganisationId")
-                                .HasConstraintName("fk_invitations_organisations_organisation_id");
-                        });
-
                     b.OwnsMany("FlowBoard.Modules.Organisations.Domain.Entities.Membership", "Memberships", b1 =>
                         {
                             b1.Property<Guid>("Id")
@@ -318,8 +251,6 @@ namespace FlowBoard.Infrastructure.Migrations
                                 .HasForeignKey("OrganisationId")
                                 .HasConstraintName("fk_memberships_organisations_organisation_id");
                         });
-
-                    b.Navigation("Invitations");
 
                     b.Navigation("Memberships");
                 });

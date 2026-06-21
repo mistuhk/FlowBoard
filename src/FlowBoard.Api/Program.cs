@@ -6,6 +6,7 @@ using FlowBoard.Application.Behaviours;
 using FlowBoard.Infrastructure;
 using FlowBoard.Modules.Identity.Infrastructure;
 using FlowBoard.Modules.Organisations.Infrastructure;
+using FlowBoard.Modules.Organisations.Infrastructure.Jobs;
 using FlowBoard.Modules.Projects.Infrastructure;
 using FlowBoard.Modules.Tasks.Infrastructure;
 using FlowBoard.Modules.Notifications.Infrastructure;
@@ -96,6 +97,14 @@ builder.Services
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
+
+// Recurring background jobs. Hourly purge of expired, unaccepted invitations (US-012).
+// Use the DI-resolved manager rather than the static RecurringJob API, which relies on
+// JobStorage.Current and is not initialised by the service-based Hangfire setup.
+app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<ExpireInvitationsJob>(
+    "expire-invitations",
+    job => job.RunAsync(CancellationToken.None),
+    Cron.Hourly);
 
 // Middleware pipeline (order is significant)
 app.UseMiddleware<ExceptionHandlingMiddleware>();   // Must be first
