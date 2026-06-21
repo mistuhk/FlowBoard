@@ -3,6 +3,7 @@ using System;
 using FlowBoard.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlowBoard.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260621150203_AddProjects")]
+    partial class AddProjects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -388,49 +391,6 @@ namespace FlowBoard.Infrastructure.Migrations
                     b.Navigation("Invitations");
 
                     b.Navigation("Memberships");
-                });
-
-            modelBuilder.Entity("FlowBoard.Modules.Projects.Domain.Aggregates.Project", b =>
-                {
-                    b.OwnsMany("FlowBoard.Modules.Projects.Domain.Entities.ProjectMember", "Members", b1 =>
-                        {
-                            b1.Property<Guid>("Id")
-                                .HasColumnType("uuid")
-                                .HasColumnName("id");
-
-                            b1.Property<DateTime>("AddedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("added_at");
-
-                            b1.Property<Guid>("ProjectId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("project_id");
-
-                            b1.Property<Guid>("UserId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("user_id");
-
-                            b1.HasKey("Id")
-                                .HasName("pk_project_members");
-
-                            b1.HasIndex("ProjectId")
-                                .HasDatabaseName("ix_project_members_project_id");
-
-                            b1.HasIndex("UserId")
-                                .HasDatabaseName("ix_project_members_user_id");
-
-                            b1.HasIndex("ProjectId", "UserId")
-                                .IsUnique()
-                                .HasDatabaseName("ix_project_members_project_id_user_id");
-
-                            b1.ToTable("project_members", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("ProjectId")
-                                .HasConstraintName("fk_project_members_projects_project_id");
-                        });
-
-                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

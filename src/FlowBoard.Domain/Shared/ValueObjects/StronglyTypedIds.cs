@@ -107,3 +107,16 @@ public readonly record struct InvitationId(Guid Value)
     /// <inheritdoc/>
     public override string ToString() => Value.ToString();
 }
+
+/// <summary>Strongly-typed identifier for a <c>ProjectMember</c> entity (child of <c>Project</c>).</summary>
+public readonly record struct ProjectMemberId(Guid Value)
+{
+    /// <summary>Creates a new <see cref="ProjectMemberId"/> with a randomly generated value.</summary>
+    public static ProjectMemberId New() => new(Guid.NewGuid());
+
+    /// <summary>Creates a <see cref="ProjectMemberId"/> from an existing <see cref="Guid"/>.</summary>
+    public static ProjectMemberId From(Guid value) => new(value);
+
+    /// <inheritdoc/>
+    public override string ToString() => Value.ToString();
+}
