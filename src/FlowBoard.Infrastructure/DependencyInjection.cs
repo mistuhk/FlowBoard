@@ -1,6 +1,7 @@
 using FlowBoard.Application.Abstractions;
 using FlowBoard.Infrastructure.Caching;
 using FlowBoard.Infrastructure.Messaging;
+using FlowBoard.Infrastructure.Outbox;
 using FlowBoard.Infrastructure.Persistence;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -52,6 +53,10 @@ public static class DependencyInjection
         );
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Transactional outbox dispatcher. Hangfire resolves it from the container; the recurring
+        // schedule is registered in the API composition root.
+        services.AddScoped<OutboxProcessor>();
 
         // Redis
         services.AddSingleton<IConnectionMultiplexer>(_ =>
