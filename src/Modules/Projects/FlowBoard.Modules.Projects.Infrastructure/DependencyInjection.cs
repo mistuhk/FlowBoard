@@ -1,5 +1,7 @@
+using FlowBoard.Application.Abstractions;
 using FlowBoard.Infrastructure.Persistence;
 using FlowBoard.Modules.Projects.Domain.Repositories;
+using FlowBoard.Modules.Projects.Infrastructure.Persistence;
 using FlowBoard.Modules.Projects.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +24,7 @@ public static class DependencyInjection
         _ = Application.AssemblyReference.Assembly;
 
         services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IProjectReader, ProjectReader>();
 
         // Expose this assembly's IEntityTypeConfiguration implementations to the shared AppDbContext.
         AppDbContext.AddConfigurationAssembly(typeof(DependencyInjection).Assembly);
