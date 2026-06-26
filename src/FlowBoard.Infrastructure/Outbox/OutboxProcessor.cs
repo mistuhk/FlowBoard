@@ -5,6 +5,7 @@ using FlowBoard.Infrastructure.Persistence;
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FlowBoard.Infrastructure.Outbox;
@@ -18,7 +19,7 @@ namespace FlowBoard.Infrastructure.Outbox;
 /// </summary>
 public sealed class OutboxProcessor(
     AppDbContext context,
-    IPublisher publisher,
+    IServiceScopeFactory scopeFactory,
     ILogger<OutboxProcessor> logger)
 {
     private const int BatchSize = 100;
@@ -78,6 +79,10 @@ public sealed class OutboxProcessor(
         var notification = Activator.CreateInstance(
             typeof(DomainEventNotification<>).MakeGenericType(eventType), domainEvent)!;
 
+        // Publish in a fresh scope so handlers (and any commands they dispatch) get their own
+        // AppDbContext and transaction, isolated from the processor's bookkeeping context.
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
         await publisher.Publish(notification, cancellationToken);
     }
 

@@ -19,4 +19,9 @@ public static class TaskErrors
     public static readonly Error ProjectArchived = new(
         "Tasks.ProjectArchived",
         "Tasks cannot be created in an archived project.");
+
+    /// <summary>Returned when assigning a task to someone who is not a member of the organisation.</summary>
+    public static readonly Error AssigneeNotOrganisationMember = new(
+        "Tasks.AssigneeNotOrganisationMember",
+        "The assignee must be a member of the organisation.");
 }

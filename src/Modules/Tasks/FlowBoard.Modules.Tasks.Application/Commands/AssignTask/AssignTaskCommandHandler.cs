@@ -7,13 +7,14 @@ using MediatR;
 namespace FlowBoard.Modules.Tasks.Application.Commands.AssignTask;
 
 /// <summary>
-/// Handles <see cref="AssignTaskCommand"/>: loads the task within the current organisation and
-/// assigns it. Validating that the assignee is an organisation member is added in US-017.
+/// Handles <see cref="AssignTaskCommand"/>: loads the task within the current organisation, checks
+/// the assignee is a member of that organisation, and assigns it.
 /// </summary>
 public sealed class AssignTaskCommandHandler(
     ICurrentUserService currentUser,
     ITenantContext tenantContext,
-    ITaskRepository tasks)
+    ITaskRepository tasks,
+    IOrganisationMembershipReader membershipReader)
     : IRequestHandler<AssignTaskCommand, Result>
 {
     /// <inheritdoc/>
@@ -25,7 +26,14 @@ public sealed class AssignTaskCommandHandler(
         if (task is null)
             return Result.Failure(TaskErrors.NotFound);
 
-        task.Assign(UserId.From(request.AssigneeId), currentUser.UserId);
+        var assigneeId = UserId.From(request.AssigneeId);
+
+        var roleName = await membershipReader.GetRoleNameAsync(
+            tenantContext.CurrentOrganisationId, assigneeId, cancellationToken);
+        if (roleName is null)
+            return Result.Failure(TaskErrors.AssigneeNotOrganisationMember);
+
+        task.Assign(assigneeId, currentUser.UserId);
 
         return Result.Success();
     }

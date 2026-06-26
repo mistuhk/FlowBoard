@@ -110,6 +110,7 @@ public sealed class TasksController(ISender sender) : ControllerBase
     [HttpPut("{taskId:guid}/assignee")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Assign(
         Guid taskId,
         [FromBody] AssignTaskRequest request,
@@ -117,8 +118,11 @@ public sealed class TasksController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new AssignTaskCommand(taskId, request.AssigneeId), cancellationToken);
 
-        return result.IsSuccess
-            ? NoContent()
+        if (result.IsSuccess)
+            return NoContent();
+
+        return result.Error == TaskErrors.AssigneeNotOrganisationMember
+            ? ToProblem(result.Error, StatusCodes.Status422UnprocessableEntity, "Unprocessable Entity", "assignee-not-member")
             : ToProblem(result.Error, StatusCodes.Status404NotFound, "Not Found", "task-not-found");
     }
 
