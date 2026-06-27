@@ -118,5 +118,74 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
             .HasFilter("due_date IS NOT NULL AND deleted_at IS NULL");
 
         builder.HasQueryFilter(t => t.DeletedAt == null);
+
+        ConfigureComments(builder);
+
+        // Load comments with their task; the aggregate owns the collection. Soft-deleted comments
+        // are loaded too (owned types cannot carry a query filter); callers exclude them.
+        builder.Navigation(t => t.Comments)
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .AutoInclude();
+    }
+
+    private static void ConfigureComments(EntityTypeBuilder<TaskItem> builder)
+    {
+        builder.OwnsMany(t => t.Comments, comment =>
+        {
+            comment.ToTable("comments", table =>
+                table.HasCheckConstraint("chk_comments_content", "char_length(content) BETWEEN 1 AND 10000"));
+
+            comment.HasKey(c => c.Id);
+
+            comment.Property(c => c.Id)
+                .HasColumnName("id")
+                .HasConversion(id => id.Value, value => CommentId.From(value))
+                .ValueGeneratedNever();
+
+            // task_id is the foreign key back to the owning aggregate.
+            comment.WithOwner().HasForeignKey(c => c.TaskId);
+            comment.Property(c => c.TaskId)
+                .HasColumnName("task_id")
+                .HasConversion(id => id.Value, value => TaskId.From(value));
+
+            comment.Property(c => c.OrganisationId)
+                .HasColumnName("organisation_id")
+                .HasConversion(id => id.Value, value => OrganisationId.From(value))
+                .IsRequired();
+
+            comment.Property(c => c.AuthorId)
+                .HasColumnName("author_id")
+                .HasConversion(id => id.Value, value => UserId.From(value))
+                .IsRequired();
+
+            comment.Property(c => c.Content)
+                .HasColumnName("content")
+                .HasConversion(content => content.Value, value => CommentContent.FromPersistence(value))
+                .IsRequired();
+
+            comment.Property(c => c.CreatedAt)
+                .HasColumnName("created_at")
+                .IsRequired();
+
+            comment.Property(c => c.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("now()")
+                .ValueGeneratedOnAddOrUpdate();
+            comment.Property(c => c.UpdatedAt).Metadata
+                .SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            comment.Property(c => c.DeletedAt)
+                .HasColumnName("deleted_at");
+
+            comment.HasIndex(c => c.TaskId)
+                .HasDatabaseName("ix_comments_task_id")
+                .HasFilter("deleted_at IS NULL");
+
+            comment.HasIndex(c => c.OrganisationId)
+                .HasDatabaseName("ix_comments_organisation_id");
+
+            comment.HasIndex(c => c.AuthorId)
+                .HasDatabaseName("ix_comments_author_id");
+        });
     }
 }
