@@ -8,6 +8,7 @@ using FlowBoard.Application.Behaviours;
 using FlowBoard.Modules.Organisations.Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using FlowBoard.Infrastructure;
+using FlowBoard.Infrastructure.Outbox;
 using FlowBoard.Modules.Identity.Infrastructure;
 using FlowBoard.Modules.Organisations.Infrastructure;
 using FlowBoard.Modules.Organisations.Infrastructure.Jobs;
@@ -117,10 +118,18 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Recurring background jobs. Hourly purge of expired, unaccepted invitations (US-012).
-// Use the DI-resolved manager rather than the static RecurringJob API, which relies on
-// JobStorage.Current and is not initialised by the service-based Hangfire setup.
-app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<ExpireInvitationsJob>(
+// Recurring background jobs. Use the DI-resolved manager rather than the static RecurringJob API,
+// which relies on JobStorage.Current and is not initialised by the service-based Hangfire setup.
+var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
+
+// Dispatch the transactional outbox: publish persisted domain events to their handlers.
+recurringJobs.AddOrUpdate<OutboxProcessor>(
+    "outbox-dispatch",
+    processor => processor.RunAsync(CancellationToken.None),
+    Cron.Minutely);
+
+// Hourly purge of expired, unaccepted invitations (US-012).
+recurringJobs.AddOrUpdate<ExpireInvitationsJob>(
     "expire-invitations",
     job => job.RunAsync(CancellationToken.None),
     Cron.Hourly);

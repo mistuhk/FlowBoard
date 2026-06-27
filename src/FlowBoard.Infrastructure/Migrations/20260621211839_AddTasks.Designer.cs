@@ -3,6 +3,7 @@ using System;
 using FlowBoard.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlowBoard.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260621211839_AddTasks")]
+    partial class AddTasks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,67 +136,6 @@ namespace FlowBoard.Infrastructure.Migrations
                         .HasDatabaseName("ix_users_email");
 
                     b.ToTable("users", (string)null);
-                });
-
-            modelBuilder.Entity("FlowBoard.Modules.Notifications.Domain.Aggregates.Notification", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("EntityId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("entity_id");
-
-                    b.Property<string>("EntityType")
-                        .HasColumnType("text")
-                        .HasColumnName("entity_type");
-
-                    b.Property<bool>("IsRead")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_read");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message");
-
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("organisation_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("type");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_notifications");
-
-                    b.HasIndex(new[] { "UserId", "CreatedAt" }, "user_all")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_notifications_user_id");
-
-                    b.HasIndex(new[] { "UserId", "CreatedAt" }, "user_unread")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_notifications_user_unread")
-                        .HasFilter("is_read = false");
-
-                    b.ToTable("notifications", null, t =>
-                        {
-                            t.HasCheckConstraint("chk_notifications_type", "type IN ('task_assigned', 'user_mentioned', 'project_invited', 'task_status_changed', 'comment_added', 'task_blocked')");
-                        });
                 });
 
             modelBuilder.Entity("FlowBoard.Modules.Organisations.Domain.Aggregates.Organisation", b =>
