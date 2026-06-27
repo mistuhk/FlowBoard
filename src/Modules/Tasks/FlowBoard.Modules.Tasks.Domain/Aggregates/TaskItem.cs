@@ -186,6 +186,11 @@ public sealed class TaskItem : AggregateRoot<TaskId>
         _comments.Add(comment);
 
         Raise(new CommentAddedEvent(comment.Id, Id, OrganisationId, authorId, content.Mentions));
+
+        // One mention event per handle; unknown handles are resolved away by the consumer.
+        foreach (var handle in content.Mentions)
+            Raise(new UserMentionedEvent(comment.Id, Id, OrganisationId, authorId, handle));
+
         return comment;
     }
 

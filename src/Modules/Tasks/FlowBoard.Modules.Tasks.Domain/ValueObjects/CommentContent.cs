@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FlowBoard.Domain.Primitives;
 using FlowBoard.Domain.Shared.Exceptions;
 
@@ -41,8 +42,19 @@ public sealed class CommentContent : ValueObject
     /// <param name="value">The stored comment text.</param>
     public static CommentContent FromPersistence(string value) => new(value, ExtractMentions(value));
 
-    // Mention extraction is implemented in US-019; until then no handles are surfaced.
-    private static IReadOnlyList<string> ExtractMentions(string value) => [];
+    // Matches @handles: an @ not preceded by a word character, @, or dot (so email addresses such as
+    // "ada@example.com" are not treated as mentions), then dot-separated alphanumeric/_/- segments.
+    private static readonly Regex MentionPattern = new(
+        @"(?<![\w@.])@([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant,
+        TimeSpan.FromMilliseconds(200));
+
+    // Extracts the distinct, lower-cased @handles in the text (without the leading @).
+    private static IReadOnlyList<string> ExtractMentions(string value) =>
+        MentionPattern.Matches(value)
+            .Select(match => match.Groups[1].Value.ToLowerInvariant())
+            .Distinct()
+            .ToList();
 
     /// <inheritdoc/>
     protected override IEnumerable<object?> GetEqualityComponents()
