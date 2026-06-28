@@ -1,6 +1,7 @@
 using FlowBoard.Domain.Primitives;
 using FlowBoard.Domain.Shared.Exceptions;
 using FlowBoard.Domain.Shared.ValueObjects;
+using FlowBoard.Modules.Tasks.Domain.Entities;
 using FlowBoard.Modules.Tasks.Domain.Events;
 using FlowBoard.Modules.Tasks.Domain.ValueObjects;
 
@@ -14,6 +15,8 @@ namespace FlowBoard.Modules.Tasks.Domain.Aggregates;
 /// </summary>
 public sealed class TaskItem : AggregateRoot<TaskId>
 {
+    private readonly List<Comment> _comments = [];
+
     /// <summary>Parameterless constructor required for EF Core materialisation.</summary>
     private TaskItem() { }
 
@@ -52,6 +55,9 @@ public sealed class TaskItem : AggregateRoot<TaskId>
 
     /// <summary>UTC timestamp at which the task was soft-deleted. <c>null</c> if active.</summary>
     public DateTime? DeletedAt { get; private set; }
+
+    /// <summary>The task's comments (including soft-deleted ones). Mutated only through aggregate behaviour.</summary>
+    public IReadOnlyList<Comment> Comments => _comments.AsReadOnly();
 
     /// <summary>Creates a new task in the Todo status and raises <see cref="TaskCreatedEvent"/>.</summary>
     /// <param name="projectId">The owning project.</param>
@@ -166,6 +172,42 @@ public sealed class TaskItem : AggregateRoot<TaskId>
         DeletedAt = DateTime.UtcNow;
         Raise(new TaskDeletedEvent(Id, ProjectId, OrganisationId));
     }
+
+    /// <summary>
+    /// Adds a comment and raises <see cref="CommentAddedEvent"/> (carrying any @mentions). Authoring
+    /// is open to any caller reaching this point; access is gated at the application layer.
+    /// </summary>
+    /// <param name="authorId">The comment author.</param>
+    /// <param name="content">The comment body.</param>
+    /// <returns>The new comment.</returns>
+    public Comment AddComment(UserId authorId, CommentContent content)
+    {
+        var comment = Comment.Create(Id, OrganisationId, authorId, content);
+        _comments.Add(comment);
+
+        Raise(new CommentAddedEvent(comment.Id, Id, OrganisationId, authorId, content.Mentions));
+
+        // One mention event per handle; unknown handles are resolved away by the consumer.
+        foreach (var handle in content.Mentions)
+            Raise(new UserMentionedEvent(comment.Id, Id, OrganisationId, authorId, handle));
+
+        return comment;
+    }
+
+    /// <summary>Edits a comment's body. Authorisation (author or Admin/Owner) is enforced by the caller.</summary>
+    /// <param name="commentId">The comment to edit.</param>
+    /// <param name="content">The new body.</param>
+    /// <exception cref="DomainException">Thrown if the comment does not exist or is deleted.</exception>
+    public void EditComment(CommentId commentId, CommentContent content) => ActiveComment(commentId).Edit(content);
+
+    /// <summary>Soft-deletes a comment. Authorisation is enforced by the caller.</summary>
+    /// <param name="commentId">The comment to delete.</param>
+    /// <exception cref="DomainException">Thrown if the comment does not exist or is already deleted.</exception>
+    public void DeleteComment(CommentId commentId) => ActiveComment(commentId).Delete();
+
+    private Comment ActiveComment(CommentId commentId) =>
+        _comments.FirstOrDefault(c => c.Id == commentId && !c.IsDeleted)
+        ?? throw new DomainException("The comment could not be found.");
 
     private static string ValidateTitle(string title)
     {

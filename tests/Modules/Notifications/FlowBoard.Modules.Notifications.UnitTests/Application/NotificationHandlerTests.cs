@@ -18,7 +18,8 @@ public sealed class NotificationHandlerTests
     public async Task CreateNotification_persists_a_notification()
     {
         var repo = new Mock<INotificationRepository>();
-        var handler = new CreateNotificationCommandHandler(repo.Object);
+        var cache = new Mock<ICacheService>();
+        var handler = new CreateNotificationCommandHandler(repo.Object, cache.Object);
 
         var result = await handler.Handle(
             new CreateNotificationCommand(

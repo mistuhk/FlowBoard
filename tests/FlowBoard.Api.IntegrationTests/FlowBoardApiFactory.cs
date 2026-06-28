@@ -1,8 +1,11 @@
+using FlowBoard.Application.Abstractions;
 using FlowBoard.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -32,6 +35,14 @@ public sealed class FlowBoardApiFactory : WebApplicationFactory<Program>, IAsync
     {
         builder.UseSetting("ConnectionStrings:Postgres", _postgres.GetConnectionString());
         builder.UseSetting("ConnectionStrings:Redis", _redis.GetConnectionString());
+
+        // No SMTP server in the test environment: swap the queueing email service for a no-op so
+        // registrations and assignments do not enqueue Hangfire jobs that would fail to reach MailHog.
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IEmailService>();
+            services.AddScoped<IEmailService, FakeEmailService>();
+        });
     }
 
     async Task IAsyncLifetime.InitializeAsync()

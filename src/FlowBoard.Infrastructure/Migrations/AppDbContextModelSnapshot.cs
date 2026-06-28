@@ -72,6 +72,57 @@ namespace FlowBoard.Infrastructure.Migrations
                     b.ToTable("outbox_messages", (string)null);
                 });
 
+            modelBuilder.Entity("FlowBoard.Modules.ActivityLog.Domain.ActivityLogEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ActorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EntityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("entity_id");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("entity_type");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("event_type");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("metadata");
+
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organisation_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_activity_logs");
+
+                    b.HasIndex("ActorId", "CreatedAt")
+                        .HasDatabaseName("ix_activity_logs_actor_id");
+
+                    b.HasIndex("OrganisationId", "CreatedAt")
+                        .HasDatabaseName("ix_activity_logs_organisation_id");
+
+                    b.HasIndex("OrganisationId", "EntityType", "EntityId", "CreatedAt")
+                        .HasDatabaseName("ix_activity_logs_entity");
+
+                    b.ToTable("activity_logs", (string)null);
+                });
+
             modelBuilder.Entity("FlowBoard.Modules.Identity.Domain.Aggregates.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -591,6 +642,71 @@ namespace FlowBoard.Infrastructure.Migrations
                         });
 
                     b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("FlowBoard.Modules.Tasks.Domain.Aggregates.TaskItem", b =>
+                {
+                    b.OwnsMany("FlowBoard.Modules.Tasks.Domain.Entities.Comment", "Comments", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<Guid>("AuthorId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("author_id");
+
+                            b1.Property<string>("Content")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("content");
+
+                            b1.Property<DateTime>("CreatedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("created_at");
+
+                            b1.Property<DateTime?>("DeletedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("deleted_at");
+
+                            b1.Property<Guid>("OrganisationId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("organisation_id");
+
+                            b1.Property<Guid>("TaskId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("task_id");
+
+                            b1.Property<DateTime>("UpdatedAt")
+                                .ValueGeneratedOnAddOrUpdate()
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("updated_at")
+                                .HasDefaultValueSql("now()");
+
+                            b1.HasKey("Id")
+                                .HasName("pk_comments");
+
+                            b1.HasIndex("AuthorId")
+                                .HasDatabaseName("ix_comments_author_id");
+
+                            b1.HasIndex("OrganisationId")
+                                .HasDatabaseName("ix_comments_organisation_id");
+
+                            b1.HasIndex("TaskId")
+                                .HasDatabaseName("ix_comments_task_id")
+                                .HasFilter("deleted_at IS NULL");
+
+                            b1.ToTable("comments", null, t =>
+                                {
+                                    t.HasCheckConstraint("chk_comments_content", "char_length(content) BETWEEN 1 AND 10000");
+                                });
+
+                            b1.WithOwner()
+                                .HasForeignKey("TaskId")
+                                .HasConstraintName("fk_comments_tasks_task_id");
+                        });
+
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }

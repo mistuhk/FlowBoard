@@ -1,3 +1,4 @@
+using FlowBoard.Application.Abstractions;
 using FlowBoard.Infrastructure.Persistence;
 using FlowBoard.Modules.Identity.Application.Abstractions;
 using FlowBoard.Modules.Identity.Domain.Abstractions;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         _ = Application.AssemblyReference.Assembly;
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserDirectory, Persistence.UserDirectory>();
         services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
 
         // Access token issuance. The RSA key and JwtOptions are registered by the API's

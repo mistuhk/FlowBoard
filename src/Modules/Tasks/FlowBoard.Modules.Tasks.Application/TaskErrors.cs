@@ -24,4 +24,9 @@ public static class TaskErrors
     public static readonly Error AssigneeNotOrganisationMember = new(
         "Tasks.AssigneeNotOrganisationMember",
         "The assignee must be a member of the organisation.");
+
+    /// <summary>Returned when the requested comment does not exist on the task.</summary>
+    public static readonly Error CommentNotFound = new(
+        "Tasks.CommentNotFound",
+        "The comment could not be found.");
 }
