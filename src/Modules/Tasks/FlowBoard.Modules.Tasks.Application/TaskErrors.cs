@@ -29,4 +29,19 @@ public static class TaskErrors
     public static readonly Error CommentNotFound = new(
         "Tasks.CommentNotFound",
         "The comment could not be found.");
+
+    /// <summary>Returned when the requested attachment does not exist on the task.</summary>
+    public static readonly Error AttachmentNotFound = new(
+        "Tasks.AttachmentNotFound",
+        "The attachment could not be found.");
+
+    /// <summary>Returned when confirming an upload whose object is not present in storage.</summary>
+    public static readonly Error AttachmentNotUploaded = new(
+        "Tasks.AttachmentNotUploaded",
+        "No uploaded file was found for the supplied storage key.");
+
+    /// <summary>Returned when a confirm request supplies a storage key not namespaced to this task.</summary>
+    public static readonly Error InvalidStorageKey = new(
+        "Tasks.InvalidStorageKey",
+        "The storage key does not belong to this task.");
 }

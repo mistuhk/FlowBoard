@@ -3,6 +3,7 @@ using FlowBoard.Infrastructure.Caching;
 using FlowBoard.Infrastructure.Messaging;
 using FlowBoard.Infrastructure.Outbox;
 using FlowBoard.Infrastructure.Persistence;
+using FlowBoard.Infrastructure.Storage;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +71,10 @@ public static class DependencyInjection
         services.AddScoped<IEmailService, QueuedEmailService>();
         services.AddScoped<IEmailSender, SmtpEmailService>();
         services.AddScoped<SendEmailNotificationJob>();
+
+        // Object storage: MinIO/S3 pre-signed URL coordination. File bytes never pass through the API.
+        services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
+        services.AddSingleton<IStorageService, S3StorageService>();
 
         // Hangfire
         services.AddHangfire(config => config

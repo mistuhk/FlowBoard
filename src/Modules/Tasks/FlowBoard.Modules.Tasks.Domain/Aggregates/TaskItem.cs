@@ -16,6 +16,7 @@ namespace FlowBoard.Modules.Tasks.Domain.Aggregates;
 public sealed class TaskItem : AggregateRoot<TaskId>
 {
     private readonly List<Comment> _comments = [];
+    private readonly List<Attachment> _attachments = [];
 
     /// <summary>Parameterless constructor required for EF Core materialisation.</summary>
     private TaskItem() { }
@@ -58,6 +59,9 @@ public sealed class TaskItem : AggregateRoot<TaskId>
 
     /// <summary>The task's comments (including soft-deleted ones). Mutated only through aggregate behaviour.</summary>
     public IReadOnlyList<Comment> Comments => _comments.AsReadOnly();
+
+    /// <summary>The task's attachments (including soft-deleted ones). Mutated only through aggregate behaviour.</summary>
+    public IReadOnlyList<Attachment> Attachments => _attachments.AsReadOnly();
 
     /// <summary>Creates a new task in the Todo status and raises <see cref="TaskCreatedEvent"/>.</summary>
     /// <param name="projectId">The owning project.</param>
@@ -208,6 +212,29 @@ public sealed class TaskItem : AggregateRoot<TaskId>
     private Comment ActiveComment(CommentId commentId) =>
         _comments.FirstOrDefault(c => c.Id == commentId && !c.IsDeleted)
         ?? throw new DomainException("The comment could not be found.");
+
+    /// <summary>
+    /// Records a confirmed file attachment (the bytes are already in storage at <paramref name="storageKey"/>).
+    /// </summary>
+    /// <param name="uploadedById">The uploader.</param>
+    /// <param name="fileName">The original file name.</param>
+    /// <param name="fileSizeBytes">The file size in bytes.</param>
+    /// <param name="mimeType">The MIME type.</param>
+    /// <param name="storageKey">The object-storage key.</param>
+    /// <returns>The new attachment.</returns>
+    public Attachment AddAttachment(UserId uploadedById, string fileName, long fileSizeBytes, string mimeType, string storageKey)
+    {
+        var attachment = Attachment.Create(Id, OrganisationId, uploadedById, fileName, fileSizeBytes, mimeType, storageKey);
+        _attachments.Add(attachment);
+        return attachment;
+    }
+
+    /// <summary>Soft-deletes an attachment. Authorisation (uploader or Admin/Owner) is enforced by the caller.</summary>
+    /// <param name="attachmentId">The attachment to delete.</param>
+    /// <exception cref="DomainException">Thrown if the attachment does not exist or is already deleted.</exception>
+    public void RemoveAttachment(AttachmentId attachmentId) =>
+        (_attachments.FirstOrDefault(a => a.Id == attachmentId && !a.IsDeleted)
+         ?? throw new DomainException("The attachment could not be found.")).Delete();
 
     private static string ValidateTitle(string title)
     {

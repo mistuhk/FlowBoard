@@ -120,12 +120,61 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
         builder.HasQueryFilter(t => t.DeletedAt == null);
 
         ConfigureComments(builder);
+        ConfigureAttachments(builder);
 
-        // Load comments with their task; the aggregate owns the collection. Soft-deleted comments
-        // are loaded too (owned types cannot carry a query filter); callers exclude them.
+        // Load comments and attachments with their task; the aggregate owns both collections.
+        // Soft-deleted children are loaded too (owned types cannot carry a query filter); callers exclude them.
         builder.Navigation(t => t.Comments)
             .UsePropertyAccessMode(PropertyAccessMode.Field)
             .AutoInclude();
+        builder.Navigation(t => t.Attachments)
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .AutoInclude();
+    }
+
+    private static void ConfigureAttachments(EntityTypeBuilder<TaskItem> builder)
+    {
+        builder.OwnsMany(t => t.Attachments, attachment =>
+        {
+            attachment.ToTable("file_attachments", table =>
+                table.HasCheckConstraint("chk_file_attachments_size", "file_size_bytes > 0"));
+
+            attachment.HasKey(a => a.Id);
+
+            attachment.Property(a => a.Id)
+                .HasColumnName("id")
+                .HasConversion(id => id.Value, value => AttachmentId.From(value))
+                .ValueGeneratedNever();
+
+            attachment.WithOwner().HasForeignKey(a => a.TaskId);
+            attachment.Property(a => a.TaskId)
+                .HasColumnName("task_id")
+                .HasConversion(id => id.Value, value => TaskId.From(value));
+
+            attachment.Property(a => a.OrganisationId)
+                .HasColumnName("organisation_id")
+                .HasConversion(id => id.Value, value => OrganisationId.From(value))
+                .IsRequired();
+
+            attachment.Property(a => a.UploadedById)
+                .HasColumnName("uploaded_by_id")
+                .HasConversion(id => id.Value, value => UserId.From(value))
+                .IsRequired();
+
+            attachment.Property(a => a.FileName).HasColumnName("file_name").IsRequired();
+            attachment.Property(a => a.FileSizeBytes).HasColumnName("file_size_bytes").IsRequired();
+            attachment.Property(a => a.MimeType).HasColumnName("mime_type").IsRequired();
+            attachment.Property(a => a.StorageKey).HasColumnName("storage_key").IsRequired();
+            attachment.Property(a => a.CreatedAt).HasColumnName("created_at").IsRequired();
+            attachment.Property(a => a.DeletedAt).HasColumnName("deleted_at");
+
+            attachment.HasIndex(a => a.TaskId)
+                .HasDatabaseName("ix_file_attachments_task_id")
+                .HasFilter("deleted_at IS NULL");
+
+            attachment.HasIndex(a => a.OrganisationId)
+                .HasDatabaseName("ix_file_attachments_organisation_id");
+        });
     }
 
     private static void ConfigureComments(EntityTypeBuilder<TaskItem> builder)

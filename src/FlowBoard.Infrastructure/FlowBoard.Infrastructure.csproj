@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="*" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="*" />
+    <PackageReference Include="Minio" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="*" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="*" />
     <PackageReference Include="OpenTelemetry" Version="*" />

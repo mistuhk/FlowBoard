@@ -14,6 +14,7 @@ using FlowBoard.Modules.Organisations.Infrastructure;
 using FlowBoard.Modules.Organisations.Infrastructure.Jobs;
 using FlowBoard.Modules.Projects.Infrastructure;
 using FlowBoard.Modules.Tasks.Infrastructure;
+using FlowBoard.Modules.Tasks.Infrastructure.Jobs;
 using FlowBoard.Modules.Notifications.Infrastructure;
 using FlowBoard.Modules.ActivityLog.Infrastructure;
 using FlowBoard.Modules.Search.Infrastructure;
@@ -133,6 +134,12 @@ recurringJobs.AddOrUpdate<ExpireInvitationsJob>(
     "expire-invitations",
     job => job.RunAsync(CancellationToken.None),
     Cron.Hourly);
+
+// Daily hard-delete of attachments soft-deleted past their retention window (US-023).
+recurringJobs.AddOrUpdate<HardDeleteAttachmentsJob>(
+    "hard-delete-attachments",
+    job => job.RunAsync(CancellationToken.None),
+    Cron.Daily);
 
 // Middleware pipeline (order is significant)
 app.UseMiddleware<ExceptionHandlingMiddleware>();   // Must be first

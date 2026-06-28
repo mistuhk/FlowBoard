@@ -69,6 +69,19 @@ public readonly record struct CommentId(Guid Value)
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>Strongly-typed identifier for an <c>Attachment</c> entity.</summary>
+public readonly record struct AttachmentId(Guid Value)
+{
+    /// <summary>Creates a new <see cref="AttachmentId"/> with a randomly generated value.</summary>
+    public static AttachmentId New() => new(Guid.NewGuid());
+
+    /// <summary>Creates an <see cref="AttachmentId"/> from an existing <see cref="Guid"/>.</summary>
+    public static AttachmentId From(Guid value) => new(value);
+
+    /// <inheritdoc/>
+    public override string ToString() => Value.ToString();
+}
+
 /// <summary>Strongly-typed identifier for a <c>Notification</c> aggregate.</summary>
 public readonly record struct NotificationId(Guid Value)
 {
