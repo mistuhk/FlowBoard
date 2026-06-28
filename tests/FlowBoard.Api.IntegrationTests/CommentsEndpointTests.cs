@@ -9,8 +9,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for task comments: add/list/edit/delete lifecycle and the author-or-Admin/Owner
 /// edit authorisation (a plain member editing another's comment is forbidden).
 /// </summary>
+[Collection("Integration")]
 public sealed class CommentsEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);

@@ -11,8 +11,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for <c>POST /api/v1/auth/refresh</c>, exercising refresh-token rotation
 /// against containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class RefreshEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record LoginBody(string AccessToken, DateTime ExpiresAtUtc);
 

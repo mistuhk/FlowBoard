@@ -13,8 +13,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for <c>POST /api/v1/auth/login</c>, exercising the full pipeline against
 /// containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class LoginEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private const string Password = "Password1";
 

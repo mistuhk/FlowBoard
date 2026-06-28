@@ -10,8 +10,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// <c>/api/v1/organisations/{orgId}/projects/{projectId}/tasks</c>: lifecycle, the status state
 /// machine, archived-project rejection, and cursor pagination.
 /// </summary>
+[Collection("Integration")]
 public sealed class TasksEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);

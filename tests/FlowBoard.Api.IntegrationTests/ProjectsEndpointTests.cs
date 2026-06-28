@@ -10,8 +10,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// <c>/api/v1/organisations/{orgId}/projects</c>, exercising the full lifecycle and tenant
 /// isolation against containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class ProjectsEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(

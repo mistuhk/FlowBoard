@@ -10,8 +10,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration test for activity feeds: domain events dispatched from the outbox are turned into
 /// activity-log entries, exposed through the project and user feeds.
 /// </summary>
+[Collection("Integration")]
 public sealed class ActivityFeedTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);

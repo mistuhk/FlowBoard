@@ -14,8 +14,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for <c>GET /api/v1/auth/verify-email</c>, exercising the full pipeline
 /// against containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class VerifyEmailEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record RegisterResponse(Guid Id, string Email, string DisplayName);
 
