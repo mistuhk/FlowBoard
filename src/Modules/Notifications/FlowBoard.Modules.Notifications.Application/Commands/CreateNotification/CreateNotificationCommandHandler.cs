@@ -1,3 +1,4 @@
+using FlowBoard.Application.Abstractions;
 using FlowBoard.Domain.Primitives;
 using FlowBoard.Domain.Shared.ValueObjects;
 using FlowBoard.Modules.Notifications.Domain.Aggregates;
@@ -8,7 +9,9 @@ using MediatR;
 namespace FlowBoard.Modules.Notifications.Application.Commands.CreateNotification;
 
 /// <summary>Handles <see cref="CreateNotificationCommand"/>: creates and stores a notification.</summary>
-public sealed class CreateNotificationCommandHandler(INotificationRepository notifications)
+public sealed class CreateNotificationCommandHandler(
+    INotificationRepository notifications,
+    ICacheService cache)
     : IRequestHandler<CreateNotificationCommand, Result>
 {
     /// <inheritdoc/>
@@ -23,6 +26,9 @@ public sealed class CreateNotificationCommandHandler(INotificationRepository not
             request.EntityId);
 
         await notifications.AddAsync(notification, cancellationToken);
+
+        // The recipient's unread count has changed; drop the cached value so it is recomputed.
+        await cache.RemoveAsync(NotificationCacheKeys.Unread(request.UserId), cancellationToken);
 
         return Result.Success();
     }
