@@ -53,8 +53,7 @@ CREATE TABLE users (
     CONSTRAINT uq_users_email UNIQUE (email)
 );
 
-CREATE INDEX idx_users_email          ON users (email);
-CREATE INDEX idx_users_active         ON users (id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_users_email          ON users (email);
 
 CREATE TRIGGER trg_users_updated_at
     BEFORE UPDATE ON users
@@ -82,8 +81,8 @@ CREATE TABLE organisations (
     CONSTRAINT chk_organisations_slug CHECK (slug ~ '^[a-z0-9-]+$')
 );
 
-CREATE INDEX idx_organisations_owner_id  ON organisations (owner_id);
-CREATE INDEX idx_organisations_active    ON organisations (id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_organisations_owner_id  ON organisations (owner_id);
+CREATE INDEX ix_organisations_active    ON organisations (id) WHERE deleted_at IS NULL;
 
 CREATE TRIGGER trg_organisations_updated_at
     BEFORE UPDATE ON organisations
@@ -105,9 +104,9 @@ CREATE TABLE memberships (
     CONSTRAINT chk_memberships_role     CHECK (role IN ('owner', 'admin', 'member', 'guest'))
 );
 
-CREATE INDEX idx_memberships_user_id         ON memberships (user_id);
-CREATE INDEX idx_memberships_organisation_id ON memberships (organisation_id);
-CREATE INDEX idx_memberships_role            ON memberships (organisation_id, role);
+CREATE INDEX ix_memberships_user_id         ON memberships (user_id);
+CREATE INDEX ix_memberships_organisation_id ON memberships (organisation_id);
+CREATE INDEX ix_memberships_role            ON memberships (organisation_id, role);
 ```
 
 ### `invitations`
@@ -128,9 +127,9 @@ CREATE TABLE invitations (
     CONSTRAINT chk_invitations_role      CHECK (role IN ('admin', 'member', 'guest'))
 );
 
-CREATE INDEX idx_invitations_organisation_id ON invitations (organisation_id);
-CREATE INDEX idx_invitations_email           ON invitations (invited_email);
-CREATE INDEX idx_invitations_pending
+CREATE INDEX ix_invitations_organisation_id ON invitations (organisation_id);
+CREATE INDEX ix_invitations_email           ON invitations (invited_email);
+CREATE INDEX ix_invitations_pending
     ON invitations (organisation_id, expires_at)
     WHERE accepted_at IS NULL;
 ```
@@ -157,9 +156,9 @@ CREATE TABLE projects (
     CONSTRAINT chk_projects_name   CHECK (char_length(name) BETWEEN 1 AND 150)
 );
 
-CREATE INDEX idx_projects_organisation_id ON projects (organisation_id);
-CREATE INDEX idx_projects_status          ON projects (organisation_id, status) WHERE deleted_at IS NULL;
-CREATE INDEX idx_projects_active          ON projects (id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_projects_organisation_id ON projects (organisation_id);
+CREATE INDEX ix_projects_status          ON projects (organisation_id, status) WHERE deleted_at IS NULL;
+CREATE INDEX ix_projects_active          ON projects (id) WHERE deleted_at IS NULL;
 
 CREATE TRIGGER trg_projects_updated_at
     BEFORE UPDATE ON projects
@@ -180,8 +179,8 @@ CREATE TABLE project_members (
     CONSTRAINT uq_project_members_project_user UNIQUE (project_id, user_id)
 );
 
-CREATE INDEX idx_project_members_project_id ON project_members (project_id);
-CREATE INDEX idx_project_members_user_id    ON project_members (user_id);
+CREATE INDEX ix_project_members_project_id ON project_members (project_id);
+CREATE INDEX ix_project_members_user_id    ON project_members (user_id);
 ```
 
 ---
@@ -220,12 +219,12 @@ CREATE TABLE tasks (
     CONSTRAINT chk_tasks_title    CHECK (char_length(title) BETWEEN 1 AND 255)
 );
 
-CREATE INDEX idx_tasks_project_id      ON tasks (project_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_tasks_organisation_id ON tasks (organisation_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_tasks_assignee_id     ON tasks (assignee_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_tasks_status          ON tasks (organisation_id, status) WHERE deleted_at IS NULL;
-CREATE INDEX idx_tasks_priority        ON tasks (organisation_id, priority) WHERE deleted_at IS NULL;
-CREATE INDEX idx_tasks_due_date        ON tasks (due_date) WHERE due_date IS NOT NULL AND deleted_at IS NULL;
+CREATE INDEX ix_tasks_project_id      ON tasks (project_id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_tasks_organisation_id ON tasks (organisation_id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_tasks_assignee_id     ON tasks (assignee_id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_tasks_status          ON tasks (organisation_id, status) WHERE deleted_at IS NULL;
+CREATE INDEX ix_tasks_priority        ON tasks (organisation_id, priority) WHERE deleted_at IS NULL;
+CREATE INDEX ix_tasks_due_date        ON tasks (due_date) WHERE due_date IS NOT NULL AND deleted_at IS NULL;
 CREATE INDEX idx_tasks_search          ON tasks USING GIN (search_vector);
 
 CREATE TRIGGER trg_tasks_updated_at
@@ -249,9 +248,9 @@ CREATE TABLE comments (
     CONSTRAINT chk_comments_content CHECK (char_length(content) BETWEEN 1 AND 10000)
 );
 
-CREATE INDEX idx_comments_task_id         ON comments (task_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_comments_organisation_id ON comments (organisation_id);
-CREATE INDEX idx_comments_author_id       ON comments (author_id);
+CREATE INDEX ix_comments_task_id         ON comments (task_id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_comments_organisation_id ON comments (organisation_id);
+CREATE INDEX ix_comments_author_id       ON comments (author_id);
 
 CREATE TRIGGER trg_comments_updated_at
     BEFORE UPDATE ON comments
@@ -259,6 +258,9 @@ CREATE TRIGGER trg_comments_updated_at
 ```
 
 ### `file_attachments`
+
+> **Planned, not yet implemented (as of Sprint 6).** No migration creates this table yet; the design
+> below is the target for the attachments sprint.
 
 Files are stored in object storage. Only metadata is persisted here.
 
@@ -278,8 +280,8 @@ CREATE TABLE file_attachments (
     CONSTRAINT chk_file_attachments_size CHECK (file_size_bytes > 0)
 );
 
-CREATE INDEX idx_file_attachments_task_id         ON file_attachments (task_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_file_attachments_organisation_id ON file_attachments (organisation_id);
+CREATE INDEX ix_file_attachments_task_id         ON file_attachments (task_id) WHERE deleted_at IS NULL;
+CREATE INDEX ix_file_attachments_organisation_id ON file_attachments (organisation_id);
 ```
 
 ---
@@ -307,11 +309,11 @@ CREATE TABLE notifications (
 );
 
 -- Hot read path: unread count per user
-CREATE INDEX idx_notifications_user_unread
+CREATE INDEX ix_notifications_user_unread
     ON notifications (user_id, created_at DESC)
     WHERE is_read = FALSE;
 
-CREATE INDEX idx_notifications_user_id ON notifications (user_id, created_at DESC);
+CREATE INDEX ix_notifications_user_id ON notifications (user_id, created_at DESC);
 ```
 
 ---
@@ -334,9 +336,9 @@ CREATE TABLE activity_logs (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_activity_logs_organisation_id  ON activity_logs (organisation_id, created_at DESC);
-CREATE INDEX idx_activity_logs_entity           ON activity_logs (entity_type, entity_id);
-CREATE INDEX idx_activity_logs_actor_id         ON activity_logs (actor_id);
+CREATE INDEX ix_activity_logs_organisation_id  ON activity_logs (organisation_id, created_at);
+CREATE INDEX ix_activity_logs_entity           ON activity_logs (organisation_id, entity_type, entity_id, created_at);
+CREATE INDEX ix_activity_logs_actor_id         ON activity_logs (actor_id, created_at);
 ```
 
 ---
