@@ -64,9 +64,12 @@ public static class DependencyInjection
 
         services.AddScoped<ICacheService, RedisCacheService>();
 
-        // Placeholder email transport so handlers depending on IEmailService can be
-        // constructed. Replaced by the real SMTP implementation in Sprint 6.
-        services.AddScoped<IEmailService, NoOpEmailService>();
+        // Email: IEmailService enqueues a Hangfire job (never sends inline); the job delivers over
+        // SMTP via MailKit (MailHog locally). Settings come from the Email configuration section.
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddScoped<IEmailService, QueuedEmailService>();
+        services.AddScoped<IEmailSender, SmtpEmailService>();
+        services.AddScoped<SendEmailNotificationJob>();
 
         // Hangfire
         services.AddHangfire(config => config
