@@ -123,7 +123,8 @@ User
 - `ChangePassword(newHashedPassword)` → raises `PasswordChangedEvent`
 - `UpdateProfile(displayName, avatarUrl)`
 - `RecordLogin()` → updates `LastLoginAt`
-- `Delete()` → raises `UserDeletedEvent` (triggers anonymisation)
+- `RequestPasswordReset(...)` → raises `PasswordResetRequestedEvent`
+- `Delete()` → raises `UserDeletedEvent` (triggers anonymisation) — **planned, not yet implemented (as of Sprint 6)**
 
 **Invariants:**
 - A `User` cannot log in until `IsEmailVerified` is `true`
@@ -137,7 +138,8 @@ User
 | `UserRegisteredEvent` | `UserId`, `Email` |
 | `EmailVerifiedEvent` | `UserId` |
 | `PasswordChangedEvent` | `UserId` |
-| `UserDeletedEvent` | `UserId` |
+| `PasswordResetRequestedEvent` | `UserId` |
+| `UserDeletedEvent` | `UserId` — **planned, not yet implemented** |
 
 ---
 
@@ -269,7 +271,7 @@ Project
 ├── Description: string?
 ├── Status: ProjectStatus
 ├── CreatedById: UserId
-├── MemberIds: IReadOnlyList<UserId>  (user references, not full User objects)
+├── Members: IReadOnlyList<ProjectMember>  (owned child entities: UserId, ProjectId, AddedAt)
 ├── CreatedAt: DateTime
 ├── UpdatedAt: DateTime
 └── DeletedAt: DateTime?
@@ -353,7 +355,7 @@ Enumeration: Low | Medium | High | Critical
 └── DeletedAt: DateTime?
 ```
 
-**`Attachment`**
+**`Attachment`** — **planned, not yet implemented (as of Sprint 6)**
 ```
 ├── Id: AttachmentId
 ├── TaskId: TaskId
@@ -382,7 +384,7 @@ TaskItem
 ├── CreatedById: UserId
 ├── DueDate: DateTime?
 ├── Comments: IReadOnlyList<Comment>
-├── Attachments: IReadOnlyList<Attachment>
+├── Attachments: IReadOnlyList<Attachment>   (planned, not yet implemented)
 ├── CreatedAt: DateTime
 ├── UpdatedAt: DateTime
 └── DeletedAt: DateTime?
@@ -391,22 +393,21 @@ TaskItem
 **Behaviours:**
 - `Create(projectId, orgId, title, description, priority, createdById)` → raises `TaskCreatedEvent`
 - `UpdateDetails(title, description, dueDate)`
-- `ChangeStatus(newStatus)` → validates transition, raises `TaskStatusChangedEvent`
-- `Assign(assigneeId)` → raises `TaskAssignedEvent`
+- `ChangeStatus(newStatus, changedById)` → validates transition, raises `TaskStatusChangedEvent`
+- `Assign(assigneeId, assignedById)` → raises `TaskAssignedEvent`
 - `Unassign()` → raises `TaskUnassignedEvent`
 - `ChangePriority(priority)` → raises `TaskPriorityChangedEvent`
-- `AddComment(authorId, content)` → raises `CommentAddedEvent` (includes extracted mentions → raises `UserMentionedEvent` per mention)
-- `EditComment(commentId, authorId, newContent)`
-- `DeleteComment(commentId, deletedById)`
-- `AddAttachment(uploadedById, fileName, fileSizeBytes, mimeType, storageKey)`
-- `RemoveAttachment(attachmentId, removedById)`
+- `AddComment(authorId, content)` → raises `CommentAddedEvent`, then one `UserMentionedEvent` per extracted @handle. Authorisation (author or Admin/Owner) for edit/delete is enforced at the application layer, not the aggregate.
+- `EditComment(commentId, content)`
+- `DeleteComment(commentId)`
+- `AddAttachment(...)` / `RemoveAttachment(...)` — **planned, not yet implemented (as of Sprint 6)**
 - `Delete(deletedById)` → raises `TaskDeletedEvent`
 
 **Invariants:**
 - `AssigneeId` must refer to a user who is a member of the task's organisation (enforced at the application layer before calling `Assign`)
 - `ChangeStatus` must follow the defined state machine transitions, invalid transitions throw a domain exception
 - A `Comment` may only be edited or deleted by its `AuthorId`, or by an Admin/Owner (role check at application layer)
-- An `Attachment` may only be removed by its `UploadedById`, or by an Admin/Owner
+- An `Attachment` may only be removed by its `UploadedById`, or by an Admin/Owner (planned, with attachments)
 - A task in a soft-deleted project cannot be modified (enforced at the application layer)
 
 ### Domain Events
@@ -420,7 +421,11 @@ TaskItem
 | `TaskPriorityChangedEvent` | `TaskId`, `OrganisationId`, `OldPriority`, `NewPriority` |
 | `TaskDeletedEvent` | `TaskId`, `ProjectId`, `OrganisationId` |
 | `CommentAddedEvent` | `CommentId`, `TaskId`, `OrganisationId`, `AuthorId`, `Mentions` |
-| `UserMentionedEvent` | `MentionedUserId`, `TaskId`, `CommentId`, `OrganisationId`, `MentionedById` |
+| `UserMentionedEvent` | `CommentId`, `TaskId`, `OrganisationId`, `AuthorId`, `Handle` (raw @handle string; resolved to a user downstream) |
+
+> Mention resolution: the `User` aggregate has no `Username` field yet, so a `@handle` is resolved
+> against the **email local-part** of an organisation member (an ambiguous handle resolves to nobody).
+> A dedicated username/handle is a planned follow-up.
 
 ---
 
@@ -515,7 +520,7 @@ erDiagram
 |---|---|---|
 | `User` |, | Identity |
 | `Organisation` | `Membership`, `Invitation` | Organisations |
-| `Project` |, (MemberIds are references) | Projects |
-| `Task` | `Comment`, `Attachment` | Tasks |
+| `Project` | `ProjectMember` (owned) | Projects |
+| `TaskItem` | `Comment` (`Attachment` planned) | Tasks |
 | `Notification` |, | Notifications |
 | `ActivityLogEntry` |, (append-only, no aggregate) | ActivityLog |

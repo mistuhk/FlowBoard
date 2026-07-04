@@ -237,8 +237,12 @@ src/
       RedisCacheService.cs
     Storage/
       S3StorageService.cs
-    Email/
-      SmtpEmailService.cs
+    Messaging/
+      SmtpEmailService.cs       # MailKit SMTP sender (MailHog locally)
+      QueuedEmailService.cs     # IEmailService: enqueues the send job, never sends inline
+      SendEmailNotificationJob.cs
+      EmailMessage.cs
+      EmailOptions.cs
     Jobs/
       HangfireJobSetup.cs
       HardDeleteJob.cs
@@ -285,8 +289,8 @@ Command Handler
   → UnitOfWork.SaveChangesAsync() fires:
       1. Serialises domain events to outbox_messages table (same DB transaction)
       2. Commits the transaction
-  → OutboxProcessor (Hangfire, runs every 5s):
-      1. Queries unprocessed outbox_messages (with advisory lock to avoid duplication)
+  → OutboxProcessor (Hangfire recurring job, runs minutely):
+      1. Queries unprocessed outbox_messages (Hangfire DisableConcurrentExecution prevents overlapping runs)
       2. Deserialises each event
       3. Publishes via MediatR IPublisher
       4. MediatR dispatches to all registered INotificationHandlers
@@ -342,19 +346,24 @@ Authorisation uses a combination of:
 
 ## 7. Tenant Isolation Middleware
 
-The `TenantResolutionMiddleware` runs on org-scoped requests and:
+The `TenantResolutionMiddleware` runs on org-scoped requests and does one thing:
 
 1. Reads the organisation id from the request route (org-owned resources are nested under
-   `/api/v1/organisations/{orgId}/...`)
-2. Validates the authenticated user is an active member of that organisation, and resolves
-   their role for authorisation
-3. Populates `ITenantContext.CurrentOrganisationId`
-4. Sets the Postgres session parameter via `set_config('app.current_organisation_id', '{orgId}', true)`
-   inside the command transaction
+   `/api/v1/organisations/{orgId}/...`) and populates `ITenantContext.CurrentOrganisationId`.
+
+Membership and role are **not** checked by the middleware. Authorisation is a separate concern:
+the `OrganisationMembershipHandler` (backing the `Member`/`Admin` policies) reads `{orgId}` from the
+route and validates the caller's membership and role via `IOrganisationMembershipReader`.
+
+The Postgres session parameter is set by `UnitOfWork` (not the middleware): on a command it issues
+`set_config('app.current_organisation_id', '{orgId}', true)` inside the explicit transaction, so the
+value is scoped to that transaction.
 
 All repositories read `ITenantContext.CurrentOrganisationId` and append
-`WHERE organisation_id = @orgId` to every query. RLS enforces this at the database level
-as a defence-in-depth measure.
+`WHERE organisation_id = @orgId` to every query, which is the **active** isolation mechanism. RLS is
+configured as defence-in-depth but is **not currently enforced**: the policies are `ENABLE`d, not
+`FORCE`d, and the application connects as the table-owning role (which bypasses non-forced RLS).
+Enforcement activates once a restricted, non-owner database role is introduced.
 
 The organisation lifecycle endpoints (`/api/v1/organisations`) are not tenant-scoped: creating
 an organisation has no prior tenant, and listing one's organisations spans every organisation
@@ -387,11 +396,11 @@ never includes a stack trace in production.
 
 Redis is used for:
 
-- Refresh token storage (key: `refresh:{token}`, value: `userId`)
-- JWT blocklist (key: `blocklist:{jti}`, TTL: token remaining lifetime)
-- Organisation membership cache (key: `{orgId}:membership:{userId}`, TTL: 5 min)
+- Refresh token storage (key: `refresh_token:{token}`, value: `userId`)
+- JWT blocklist (key: `jwt_blocklist:{jti}`, TTL: token remaining lifetime)
 - Notification unread count (key: `{userId}:notifications:unread`, invalidated on write)
-- Dashboard summary (key: `{userId}:dashboard`, TTL: 2 min)
+- Organisation membership cache (key: `{orgId}:membership:{userId}`, TTL: 5 min) — **planned, not yet implemented (as of Sprint 6)**; membership is currently read from the database on each request
+- Dashboard summary (key: `{userId}:dashboard`, TTL: 2 min) — **planned, not yet implemented (as of Sprint 6)**
 
 Caching is abstracted behind `ICacheService` to allow swapping implementations in tests.
 
