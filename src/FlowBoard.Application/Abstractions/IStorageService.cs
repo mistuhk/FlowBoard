@@ -26,6 +26,14 @@ public interface IStorageService
     Task<string> GenerateDownloadUrlAsync(string storageKey, TimeSpan expiry);
 
     /// <summary>
+    /// Returns whether an object exists in storage. Used to confirm a client has actually uploaded a
+    /// file before its metadata is persisted.
+    /// </summary>
+    /// <param name="storageKey">The key of the object to check.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    Task<bool> ExistsAsync(string storageKey, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Permanently deletes an object from storage.
     /// Called by the maintenance job when a soft-deleted attachment passes its retention window.
     /// </summary>

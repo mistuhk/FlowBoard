@@ -42,6 +42,10 @@ public sealed class FlowBoardApiFactory : WebApplicationFactory<Program>, IAsync
         {
             services.RemoveAll<IEmailService>();
             services.AddScoped<IEmailService, FakeEmailService>();
+
+            // No MinIO in the test environment: fake object storage so attachment coordination works.
+            services.RemoveAll<IStorageService>();
+            services.AddSingleton<IStorageService, FakeStorageService>();
         });
     }
 
