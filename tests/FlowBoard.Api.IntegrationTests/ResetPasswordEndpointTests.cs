@@ -12,8 +12,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for <c>POST /api/v1/auth/reset-password</c>, covering a full reset, token
 /// single-use, and revocation of pre-reset refresh tokens, against containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class ResetPasswordEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private const string NewPassword = "NewPassword1";
 

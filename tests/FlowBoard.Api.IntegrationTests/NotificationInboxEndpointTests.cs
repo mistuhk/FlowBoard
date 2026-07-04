@@ -11,8 +11,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for the in-app notification inbox: list, unread-count, mark-read, mark-all-read,
 /// and cross-user isolation (one user can neither see nor mark another user's notifications).
 /// </summary>
+[Collection("Integration")]
 public sealed class NotificationInboxEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);

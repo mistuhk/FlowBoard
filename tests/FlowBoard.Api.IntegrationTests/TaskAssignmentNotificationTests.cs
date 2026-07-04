@@ -16,8 +16,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// domain event that, once dispatched from the outbox, the Notifications module turns into a
 /// notification. Also covers rejecting a non-member assignee.
 /// </summary>
+[Collection("Integration")]
 public sealed class TaskAssignmentNotificationTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);

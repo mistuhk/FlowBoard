@@ -11,8 +11,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for <c>POST /api/v1/auth/logout</c>, covering refresh-token revocation and
 /// access-token blocklisting against containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class LogoutEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private static async Task<HttpResponseMessage> LogoutAsync(
         HttpClient client, string accessToken, string? refreshToken)
