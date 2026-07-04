@@ -1,5 +1,7 @@
 using FlowBoard.Infrastructure.Persistence;
+using FlowBoard.Modules.Tasks.Application.Abstractions;
 using FlowBoard.Modules.Tasks.Domain.Repositories;
+using FlowBoard.Modules.Tasks.Infrastructure.Dashboard;
 using FlowBoard.Modules.Tasks.Infrastructure.Jobs;
 using FlowBoard.Modules.Tasks.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +25,7 @@ public static class DependencyInjection
         _ = Application.AssemblyReference.Assembly;
 
         services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<IDashboardReader, DashboardReader>();
         services.AddScoped<HardDeleteAttachmentsJob>();
 
         // Expose this assembly's IEntityTypeConfiguration implementations to the shared AppDbContext.
