@@ -105,7 +105,7 @@ the outbox and the shared kernel.
 graph TB
     subgraph api[API Application - Modular Monolith]
         subgraph presentation[Presentation Layer]
-            controllers["Controllers<br/>Auth, Users, Organisations, Members,<br/>Invitations, Projects, ProjectMembers,<br/>Tasks, Comments, Notifications, Activity"]
+            controllers["Controllers<br/>Auth, Users, Organisations, Members,<br/>Invitations, Projects, ProjectMembers,<br/>Tasks, Comments, Attachments, Notifications,<br/>Activity, Search"]
             middleware["Middleware<br/>ExceptionHandling<br/>TenantResolution"]
         end
 
@@ -113,7 +113,7 @@ graph TB
             identity["🔐 Identity<br/>User, auth, JWT"]
             orgs["🏢 Organisations<br/>Org, membership, roles"]
             projects["📁 Projects<br/>Project, members"]
-            tasks["✅ Tasks<br/>Task, comment<br/>(attachment planned)"]
+            tasks["✅ Tasks<br/>Task, comment, attachment"]
             notifications["🔔 Notifications<br/>In-app + email"]
             activity["📜 ActivityLog<br/>Append-only audit"]
             search["🔍 Search<br/>Full-text search"]
@@ -286,11 +286,9 @@ sequenceDiagram
 
 ## 7. Sequence Diagram: File Attachment Upload (Pre-Signed URL)
 
-> **Planned, not yet implemented (as of Sprint 6).** There is no `AttachmentsController`,
-> `file_attachments` table, or `Attachment` entity yet; object storage (MinIO/S3) is provisioned in
-> the stack but the upload flow below is the intended design for the attachments sprint.
-
-No file bytes pass through the API server.
+No file bytes pass through the API server. Implemented in Sprint 7 (US-023): `AttachmentsController`
+exposes `upload-url` and `confirm`; the `Attachment` entity and `file_attachments` table hold metadata
+only, with the bytes in object storage (MinIO/S3).
 
 ```mermaid
 sequenceDiagram
@@ -437,7 +435,7 @@ erDiagram
     }
 
     FILE_ATTACHMENTS {
-        uuid id PK "PLANNED - table not yet created"
+        uuid id PK
         uuid task_id FK
         uuid organisation_id FK
         uuid uploaded_by_id FK
@@ -512,9 +510,9 @@ graph TB
     subgraph tasks_bc[Tasks Bounded Context]
         task_agg["🟢 TaskItem (Aggregate Root)"]
         comment["🔵 Comment (child entity)"]
-        attachment["⚪ Attachment (child entity) - PLANNED"]
+        attachment["🔵 Attachment (child entity)"]
         task_agg --> comment
-        task_agg -.-> attachment
+        task_agg --> attachment
     end
 
     subgraph notif_bc[Notifications Bounded Context]

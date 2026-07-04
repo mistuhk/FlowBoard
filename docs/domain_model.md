@@ -355,7 +355,7 @@ Enumeration: Low | Medium | High | Critical
 └── DeletedAt: DateTime?
 ```
 
-**`Attachment`** — **planned, not yet implemented (as of Sprint 6)**
+**`Attachment`**
 ```
 ├── Id: AttachmentId
 ├── TaskId: TaskId
@@ -384,7 +384,7 @@ TaskItem
 ├── CreatedById: UserId
 ├── DueDate: DateTime?
 ├── Comments: IReadOnlyList<Comment>
-├── Attachments: IReadOnlyList<Attachment>   (planned, not yet implemented)
+├── Attachments: IReadOnlyList<Attachment>
 ├── CreatedAt: DateTime
 ├── UpdatedAt: DateTime
 └── DeletedAt: DateTime?
@@ -400,14 +400,15 @@ TaskItem
 - `AddComment(authorId, content)` → raises `CommentAddedEvent`, then one `UserMentionedEvent` per extracted @handle. Authorisation (author or Admin/Owner) for edit/delete is enforced at the application layer, not the aggregate.
 - `EditComment(commentId, content)`
 - `DeleteComment(commentId)`
-- `AddAttachment(...)` / `RemoveAttachment(...)` — **planned, not yet implemented (as of Sprint 6)**
+- `AddAttachment(uploadedById, fileName, fileSizeBytes, mimeType, storageKey)` records confirmed upload metadata
+- `RemoveAttachment(attachmentId)` soft-deletes (uploader or Admin/Owner, enforced at the application layer)
 - `Delete(deletedById)` → raises `TaskDeletedEvent`
 
 **Invariants:**
 - `AssigneeId` must refer to a user who is a member of the task's organisation (enforced at the application layer before calling `Assign`)
 - `ChangeStatus` must follow the defined state machine transitions, invalid transitions throw a domain exception
 - A `Comment` may only be edited or deleted by its `AuthorId`, or by an Admin/Owner (role check at application layer)
-- An `Attachment` may only be removed by its `UploadedById`, or by an Admin/Owner (planned, with attachments)
+- An `Attachment` may only be removed by its `UploadedById`, or by an Admin/Owner (role check at application layer)
 - A task in a soft-deleted project cannot be modified (enforced at the application layer)
 
 ### Domain Events
@@ -521,6 +522,6 @@ erDiagram
 | `User` |, | Identity |
 | `Organisation` | `Membership`, `Invitation` | Organisations |
 | `Project` | `ProjectMember` (owned) | Projects |
-| `TaskItem` | `Comment` (`Attachment` planned) | Tasks |
+| `TaskItem` | `Comment`, `Attachment` | Tasks |
 | `Notification` |, | Notifications |
 | `ActivityLogEntry` |, (append-only, no aggregate) | ActivityLog |

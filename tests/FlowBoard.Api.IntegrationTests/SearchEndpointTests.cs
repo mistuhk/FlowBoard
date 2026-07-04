@@ -8,8 +8,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for full-text search over real PostgreSQL: text queries rank and match tasks and
 /// projects, and a filter-only query (no text) returns filtered results without FTS scoring.
 /// </summary>
+[Collection("Integration")]
 public sealed class SearchEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);
