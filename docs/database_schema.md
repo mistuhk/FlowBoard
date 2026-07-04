@@ -259,10 +259,8 @@ CREATE TRIGGER trg_comments_updated_at
 
 ### `file_attachments`
 
-> **Planned, not yet implemented (as of Sprint 6).** No migration creates this table yet; the design
-> below is the target for the attachments sprint.
-
-Files are stored in object storage. Only metadata is persisted here.
+Files are stored in object storage. Only metadata is persisted here. Added in the Sprint 7
+`AddFileAttachments` migration (US-023).
 
 ```sql
 CREATE TABLE file_attachments (

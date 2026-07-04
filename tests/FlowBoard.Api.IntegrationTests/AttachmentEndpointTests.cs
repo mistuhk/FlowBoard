@@ -9,8 +9,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for the attachment pre-signed URL flow: request an upload URL, confirm the
 /// upload, list, get a download URL, and remove. Uses the fake storage service.
 /// </summary>
+[Collection("Integration")]
 public sealed class AttachmentEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);
