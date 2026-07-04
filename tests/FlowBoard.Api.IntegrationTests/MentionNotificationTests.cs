@@ -15,8 +15,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration test for the @mention flow: a comment mentioning a member's handle becomes a
 /// user_mentioned notification once the outbox is dispatched, while an unknown handle is ignored.
 /// </summary>
+[Collection("Integration")]
 public sealed class MentionNotificationTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record ProjectBody(Guid Id, Guid OrganisationId, string Name, string? Description, string Status, Guid CreatedById);

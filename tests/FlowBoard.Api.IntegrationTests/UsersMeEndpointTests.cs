@@ -9,8 +9,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for the profile endpoints <c>GET/PUT /api/v1/users/me</c>, exercising the JWT
 /// bearer identity and profile update against containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class UsersMeEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record ProfileBody(
         Guid Id,

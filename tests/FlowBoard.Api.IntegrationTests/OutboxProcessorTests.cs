@@ -11,8 +11,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// outbox; the processor publishes them to their handlers and stamps them processed. This class has
 /// its own database (one factory per class), so it owns every outbox row it asserts on.
 /// </summary>
+[Collection("Integration")]
 public sealed class OutboxProcessorTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private async Task RunProcessorAsync()
     {

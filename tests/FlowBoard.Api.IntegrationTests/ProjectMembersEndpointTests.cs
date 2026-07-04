@@ -9,8 +9,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for project membership and Guest access enforcement: a Guest sees a project
 /// only once they have been explicitly added to it, and an unseen project reports 404 (not 403).
 /// </summary>
+[Collection("Integration")]
 public sealed class ProjectMembersEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private sealed record OrgBody(Guid Id, string Name, string Slug, Guid OwnerId);
     private sealed record InvitationBody(

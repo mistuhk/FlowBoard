@@ -12,8 +12,8 @@ namespace FlowBoard.Api.IntegrationTests;
 /// Integration tests for <c>POST /api/v1/auth/forgot-password</c>, covering the no-enumeration
 /// behaviour and reset-token issuance against containerised PostgreSQL and Redis.
 /// </summary>
+[Collection("Integration")]
 public sealed class ForgotPasswordEndpointTests(FlowBoardApiFactory factory)
-    : IClassFixture<FlowBoardApiFactory>
 {
     private async Task<string?> PendingResetTokenAsync(Guid userId)
     {
