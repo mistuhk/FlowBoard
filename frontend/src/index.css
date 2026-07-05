@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens. Dark-first, with a light theme mirroring the same semantics. */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --surface: 210 20% 98%;
+    --elevated: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 245 75% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 245 75% 96%;
+    --accent-foreground: 245 60% 40%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 214 24% 90%;
+    --input: 214 24% 88%;
+    --ring: 245 75% 59%;
+    --radius: 0.65rem;
+  }
+
+  .dark {
+    --background: 224 24% 6%;
+    --surface: 225 21% 9%;
+    --elevated: 225 18% 12%;
+    --foreground: 210 20% 96%;
+    --card: 225 21% 9%;
+    --card-foreground: 210 20% 96%;
+    --primary: 248 90% 70%;
+    --primary-foreground: 224 24% 6%;
+    --secondary: 225 14% 16%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 225 14% 15%;
+    --muted-foreground: 218 12% 62%;
+    --accent: 248 40% 20%;
+    --accent-foreground: 248 90% 85%;
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 210 20% 98%;
+    --success: 142 60% 48%;
+    --success-foreground: 210 20% 98%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 224 24% 6%;
+    --border: 225 14% 17%;
+    --input: 225 14% 20%;
+    --ring: 248 90% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground;
+  }
+}
