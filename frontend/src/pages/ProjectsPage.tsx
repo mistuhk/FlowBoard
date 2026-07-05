@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   Archive,
   ArchiveRestore,
@@ -151,13 +152,20 @@ function ProjectCard({
   onDelete: (p: Project) => void;
 }) {
   const setArchived = useSetProjectArchived(orgId);
+  const navigate = useNavigate();
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-card p-5">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/projects/${project.id}`)}
+      onKeyDown={(e) => e.key === "Enter" && navigate(`/projects/${project.id}`)}
+      className="flex cursor-pointer flex-col rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <div className="flex items-start justify-between">
         <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-lg font-bold text-primary">
           {project.name[0]}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           {project.status === "archived" && (
             <Badge variant="outline" className="gap-1">
               <Archive className="h-3 w-3" /> Archived

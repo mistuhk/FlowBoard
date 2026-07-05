@@ -6,6 +6,7 @@ import { InvitationAcceptPage } from "@/pages/InvitationAcceptPage";
 import { MembersPage } from "@/pages/MembersPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OrganisationSettingsPage } from "@/pages/OrganisationSettingsPage";
+import { ProjectTasksPage } from "@/pages/ProjectTasksPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { ForgotPasswordPage } from "@/pages/auth/ForgotPasswordPage";
 import { LoginPage } from "@/pages/auth/LoginPage";
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
         element: <OrgScopedLayout />,
         children: [
           { path: "/", element: <ProjectsPage /> },
+          { path: "/projects/:projectId", element: <ProjectTasksPage /> },
           { path: "/members", element: <MembersPage /> },
           { path: "/settings", element: <OrganisationSettingsPage /> },
         ],
