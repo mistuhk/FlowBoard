@@ -18,6 +18,7 @@ env:
   DOTNET_VERSION: "10.0.x"
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NODE_VERSION: "22.x"
 
 jobs:
   # Build
@@ -127,3 +128,34 @@ jobs:
         # Fails if any file would be changed by dotnet format.
         # Fix locally with: dotnet format
         run: dotnet format --verify-no-changes --verbosity diagnostic
+
+  # Frontend
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
