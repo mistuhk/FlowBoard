@@ -1,4 +1,5 @@
 import {
+  Bell,
   Check,
   ChevronsUpDown,
   FolderKanban,
@@ -19,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/features/auth/useAuth";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { CurrentOrgProvider } from "@/features/organisations/CurrentOrgProvider";
 import { useCurrentOrg } from "@/features/organisations/useCurrentOrg";
 import { cn } from "@/lib/utils";
@@ -87,6 +89,9 @@ function Sidebar() {
         <NavLink to="/" end className={linkClass}>
           <FolderKanban className="h-4 w-4" /> Projects
         </NavLink>
+        <NavLink to="/notifications" className={linkClass}>
+          <Bell className="h-4 w-4" /> Notifications
+        </NavLink>
         <NavLink to="/members" className={linkClass}>
           <UsersIcon className="h-4 w-4" /> Members
         </NavLink>
@@ -102,6 +107,7 @@ function Topbar() {
   const { user, logout } = useAuth();
   return (
     <header className="glass sticky top-0 z-30 flex h-14 items-center justify-end gap-1 border-b border-border px-6">
+      <NotificationBell />
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

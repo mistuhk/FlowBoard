@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AttachmentPanel } from "@/features/attachments/AttachmentPanel";
+import { CommentThread } from "@/features/comments/CommentThread";
 import type { Member } from "@/features/organisations/organisations";
 import {
   PRIORITY_ORDER,
@@ -237,6 +239,14 @@ export function TaskDrawer({
               placeholder="Add a description."
               className="min-h-[120px] bg-background"
             />
+          </div>
+
+          <div className="mt-8 border-t border-border pt-6">
+            <AttachmentPanel orgId={orgId} projectId={projectId} taskId={task.id} />
+          </div>
+
+          <div className="mt-8 border-t border-border pt-6">
+            <CommentThread orgId={orgId} projectId={projectId} taskId={task.id} members={members} />
           </div>
         </div>
       </SheetContent>

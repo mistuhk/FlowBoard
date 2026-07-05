@@ -5,6 +5,7 @@ import { CreateOrganisationPage } from "@/pages/CreateOrganisationPage";
 import { InvitationAcceptPage } from "@/pages/InvitationAcceptPage";
 import { MembersPage } from "@/pages/MembersPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { NotificationsPage } from "@/pages/NotificationsPage";
 import { OrganisationSettingsPage } from "@/pages/OrganisationSettingsPage";
 import { ProjectTasksPage } from "@/pages/ProjectTasksPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "/", element: <ProjectsPage /> },
           { path: "/projects/:projectId", element: <ProjectTasksPage /> },
+          { path: "/notifications", element: <NotificationsPage /> },
           { path: "/members", element: <MembersPage /> },
           { path: "/settings", element: <OrganisationSettingsPage /> },
         ],
