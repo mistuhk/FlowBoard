@@ -1,7 +1,9 @@
 using FlowBoard.Domain.Primitives;
+using FlowBoard.Modules.Organisations.Application;
 using FlowBoard.Modules.Organisations.Application.Commands.ChangeMemberRole;
 using FlowBoard.Modules.Organisations.Application.Commands.RemoveMember;
 using FlowBoard.Modules.Organisations.Application.Commands.TransferOwnership;
+using FlowBoard.Modules.Organisations.Application.Queries.ListMembers;
 using FlowBoard.Modules.Organisations.Presentation.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +23,20 @@ namespace FlowBoard.Modules.Organisations.Presentation.Controllers;
 [Route("api/v1/organisations/{orgId:guid}")]
 public sealed class MembersController(ISender sender) : ControllerBase
 {
+    /// <summary>Lists the organisation's members. The caller must be a member of the organisation.</summary>
+    /// <param name="orgId">The organisation.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    [HttpGet("members")]
+    [ProducesResponseType(typeof(IReadOnlyList<MemberResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> List(Guid orgId, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new ListMembersQuery(orgId), cancellationToken);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : ToProblem(result.Error, StatusCodes.Status404NotFound, "Not Found", "organisation-not-found");
+    }
+
     /// <summary>Changes a member's role.</summary>
     /// <param name="orgId">The organisation.</param>
     /// <param name="userId">The member whose role is changing.</param>

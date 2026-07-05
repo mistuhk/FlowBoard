@@ -3,6 +3,8 @@ using FlowBoard.Modules.Organisations.Application;
 using FlowBoard.Modules.Organisations.Application.Commands.CreateOrganisation;
 using FlowBoard.Modules.Organisations.Application.Commands.DeleteOrganisation;
 using FlowBoard.Modules.Organisations.Application.Commands.RenameOrganisation;
+using FlowBoard.Modules.Organisations.Application.Queries.GetOrganisation;
+using FlowBoard.Modules.Organisations.Application.Queries.ListOrganisations;
 using FlowBoard.Modules.Organisations.Presentation.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +23,30 @@ namespace FlowBoard.Modules.Organisations.Presentation.Controllers;
 [Route("api/v1/organisations")]
 public sealed class OrganisationsController(ISender sender) : ControllerBase
 {
+    /// <summary>Lists the organisations the authenticated caller belongs to.</summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<OrganisationSummaryResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> List(CancellationToken cancellationToken)
+    {
+        var organisations = await sender.Send(new ListOrganisationsQuery(), cancellationToken);
+        return Ok(organisations);
+    }
+
+    /// <summary>Returns a single organisation the caller belongs to, with the caller's role.</summary>
+    /// <param name="id">The organisation's identifier.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(OrganisationSummaryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetOrganisationQuery(id), cancellationToken);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : ToProblem(result.Error, StatusCodes.Status404NotFound, "Not Found", "organisation-not-found");
+    }
+
     /// <summary>Creates a new organisation owned by the authenticated caller.</summary>
     /// <param name="request">The organisation details.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
