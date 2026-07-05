@@ -71,3 +71,9 @@
     @apply bg-background font-sans text-foreground;
   }
 }
+
+@layer utilities {
+  .glass {
+    @apply bg-background/70 backdrop-blur-xl;
+  }
+}
