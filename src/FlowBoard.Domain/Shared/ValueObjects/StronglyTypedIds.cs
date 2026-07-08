@@ -69,6 +69,19 @@ public readonly record struct CommentId(Guid Value)
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>Strongly-typed identifier for an <c>Attachment</c> entity.</summary>
+public readonly record struct AttachmentId(Guid Value)
+{
+    /// <summary>Creates a new <see cref="AttachmentId"/> with a randomly generated value.</summary>
+    public static AttachmentId New() => new(Guid.NewGuid());
+
+    /// <summary>Creates an <see cref="AttachmentId"/> from an existing <see cref="Guid"/>.</summary>
+    public static AttachmentId From(Guid value) => new(value);
+
+    /// <inheritdoc/>
+    public override string ToString() => Value.ToString();
+}
+
 /// <summary>Strongly-typed identifier for a <c>Notification</c> aggregate.</summary>
 public readonly record struct NotificationId(Guid Value)
 {
@@ -77,6 +90,45 @@ public readonly record struct NotificationId(Guid Value)
 
     /// <summary>Creates a <see cref="NotificationId"/> from an existing <see cref="Guid"/>.</summary>
     public static NotificationId From(Guid value) => new(value);
+
+    /// <inheritdoc/>
+    public override string ToString() => Value.ToString();
+}
+
+/// <summary>Strongly-typed identifier for a <c>Membership</c> entity (child of <c>Organisation</c>).</summary>
+public readonly record struct MembershipId(Guid Value)
+{
+    /// <summary>Creates a new <see cref="MembershipId"/> with a randomly generated value.</summary>
+    public static MembershipId New() => new(Guid.NewGuid());
+
+    /// <summary>Creates a <see cref="MembershipId"/> from an existing <see cref="Guid"/>.</summary>
+    public static MembershipId From(Guid value) => new(value);
+
+    /// <inheritdoc/>
+    public override string ToString() => Value.ToString();
+}
+
+/// <summary>Strongly-typed identifier for an <c>Invitation</c> entity (child of <c>Organisation</c>).</summary>
+public readonly record struct InvitationId(Guid Value)
+{
+    /// <summary>Creates a new <see cref="InvitationId"/> with a randomly generated value.</summary>
+    public static InvitationId New() => new(Guid.NewGuid());
+
+    /// <summary>Creates an <see cref="InvitationId"/> from an existing <see cref="Guid"/>.</summary>
+    public static InvitationId From(Guid value) => new(value);
+
+    /// <inheritdoc/>
+    public override string ToString() => Value.ToString();
+}
+
+/// <summary>Strongly-typed identifier for a <c>ProjectMember</c> entity (child of <c>Project</c>).</summary>
+public readonly record struct ProjectMemberId(Guid Value)
+{
+    /// <summary>Creates a new <see cref="ProjectMemberId"/> with a randomly generated value.</summary>
+    public static ProjectMemberId New() => new(Guid.NewGuid());
+
+    /// <summary>Creates a <see cref="ProjectMemberId"/> from an existing <see cref="Guid"/>.</summary>
+    public static ProjectMemberId From(Guid value) => new(value);
 
     /// <inheritdoc/>
     public override string ToString() => Value.ToString();

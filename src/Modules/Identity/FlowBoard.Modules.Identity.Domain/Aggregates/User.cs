@@ -33,7 +33,11 @@ public sealed class User : AggregateRoot<UserId>
     /// </summary>
     public bool IsEmailVerified { get; private set; }
 
-    /// <summary>UTC timestamp of the most recent change to this aggregate.</summary>
+    /// <summary>
+    /// UTC timestamp of the most recent change to this aggregate.
+    /// Database-managed: set on insert by the <c>updated_at</c> column default and on
+    /// update by the <c>trg_users_updated_at</c> trigger. Never assigned in code.
+    /// </summary>
     public DateTime UpdatedAt { get; private set; }
 
     /// <summary>UTC timestamp of the user's most recent successful login. <c>null</c> if never logged in.</summary>
@@ -43,37 +47,41 @@ public sealed class User : AggregateRoot<UserId>
     public DateTime? DeletedAt { get; private set; }
 
     /// <summary>
-    /// Factory method. Creates a new unverified user account and raises
+    /// Creates a new, unverified user.
+    /// The password must already be hashed, hashing is performed by IPasswordHasher in the Application layer.
     /// <see cref="UserRegisteredEvent"/>.
     /// </summary>
     /// <param name="email">The user's email address.</param>
     /// <param name="password">The plaintext password (hashed internally by <see cref="HashedPassword"/>).</param>
     /// <param name="displayName">The user's chosen display name.</param>
     /// <returns>A new <see cref="User"/> instance with <see cref="IsEmailVerified"/> set to <c>false</c>.</returns>
-    public static User Register(string email, string password, string displayName)
+    public static User Register(Email email, HashedPassword password, DisplayName displayName)
     {
         var user = new User
         {
             Id = UserId.New(),
-            Email = Email.Create(email),
-            Password = HashedPassword.FromPlaintext(password),
-            DisplayName = DisplayName.Create(displayName),
+            Email = email,
+            Password = password,
+            DisplayName = displayName,
             IsEmailVerified = false,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,  // object initialiser bypasses the base ctor, so set it explicitly
+            // updated_at is database-managed (column default on insert, trigger on update).
         };
 
-        user.Raise(new UserRegisteredEvent(user.Id, user.Email.Value));
-
+        user.Raise(new UserRegisteredEvent(user.Id, email.Value));
         return user;
     }
 
     /// <summary>
     /// Marks the user's email as verified and raises <see cref="EmailVerifiedEvent"/>.
+    /// Idempotent: verifying an already-verified account is a no-op and raises no event.
     /// </summary>
     public void VerifyEmail()
     {
+        if (IsEmailVerified)
+            return;
+
         IsEmailVerified = true;
-        UpdatedAt = DateTime.UtcNow;
 
         Raise(new EmailVerifiedEvent(Id));
     }
@@ -82,6 +90,35 @@ public sealed class User : AggregateRoot<UserId>
     public void RecordLogin()
     {
         LastLoginAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Records that the user has requested a password reset and raises
+    /// <see cref="PasswordResetRequestedEvent"/> so the reset email is sent from the outbox.
+    /// Changes no state: the reset token itself lives in the cache, not on the aggregate.
+    /// </summary>
+    public void RequestPasswordReset()
+    {
+        Raise(new PasswordResetRequestedEvent(Id, Email.Value));
+    }
+
+    /// <summary>
+    /// Replaces the user's password with an already-hashed value and raises
+    /// <see cref="PasswordChangedEvent"/>. Hashing is performed by <c>IPasswordHasher</c> in the
+    /// Application layer; the aggregate never sees the plaintext.
+    /// </summary>
+    /// <param name="newPassword">The new, already-computed password hash.</param>
+    public void ChangePassword(HashedPassword newPassword)
+    {
+        Password = newPassword;
+
+        Raise(new PasswordChangedEvent(Id));
+    }
+
+    /// <summary>Updates the user's editable profile details.</summary>
+    /// <param name="displayName">The new display name.</param>
+    public void UpdateProfile(DisplayName displayName)
+    {
+        DisplayName = displayName;
     }
 }

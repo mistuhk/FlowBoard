@@ -35,12 +35,12 @@ public sealed class ExceptionHandlingMiddleware(
     {
         var (status, title, type) = ex switch
         {
-            ValidationException  => (422, "Validation Failed",         "validation-failed"),
-            NotFoundException    => (404, "Resource Not Found",        "not-found"),
-            ForbiddenException   => (403, "Forbidden",                 "forbidden"),
-            ConflictException    => (409, "Conflict",                  "conflict"),
-            DomainException      => (422, "Business Rule Violation",   "domain-error"),
-            _                    => (500, "Internal Server Error",     "server-error"),
+            ValidationException => (422, "Validation Failed", "validation-failed"),
+            NotFoundException => (404, "Resource Not Found", "not-found"),
+            ForbiddenException => (403, "Forbidden", "forbidden"),
+            ConflictException => (409, "Conflict", "conflict"),
+            DomainException => (422, "Business Rule Violation", "domain-error"),
+            _ => (500, "Internal Server Error", "server-error"),
         };
 
         var problem = new ProblemDetails

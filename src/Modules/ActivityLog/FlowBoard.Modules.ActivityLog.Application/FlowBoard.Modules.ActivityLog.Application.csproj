@@ -3,6 +3,11 @@
   <ItemGroup>
     <ProjectReference Include="..\FlowBoard.Modules.ActivityLog.Domain\FlowBoard.Modules.ActivityLog.Domain.csproj" />
     <ProjectReference Include="..\..\..\FlowBoard.Application\FlowBoard.Application.csproj" />
+    <!-- Subscribes to the domain events published by these modules (the cross-module contract) to
+         write activity-log entries. References the event types only, not the modules' internals. -->
+    <ProjectReference Include="..\..\Tasks\FlowBoard.Modules.Tasks.Domain\FlowBoard.Modules.Tasks.Domain.csproj" />
+    <ProjectReference Include="..\..\Projects\FlowBoard.Modules.Projects.Domain\FlowBoard.Modules.Projects.Domain.csproj" />
+    <ProjectReference Include="..\..\Organisations\FlowBoard.Modules.Organisations.Domain\FlowBoard.Modules.Organisations.Domain.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

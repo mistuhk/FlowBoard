@@ -24,6 +24,17 @@ public sealed class RedisCacheService(IConnectionMultiplexer redis) : ICacheServ
     }
 
     /// <inheritdoc/>
+    public async Task<T?> GetAndRemoveAsync<T>(string key, CancellationToken cancellationToken = default)
+    {
+        // StringGetDeleteAsync reads and deletes in a single atomic Redis operation.
+        var value = await _db.StringGetDeleteAsync(key);
+        if (value.IsNullOrEmpty) return default;
+
+        var json = (string)value!;
+        return JsonSerializer.Deserialize<T>(json);
+    }
+
+    /// <inheritdoc/>
     public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken cancellationToken = default)
     {
         var serialised = JsonSerializer.Serialize(value);

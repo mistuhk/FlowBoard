@@ -1,29 +1,36 @@
-using FlowBoard.Application.Abstractions;
+using FlowBoard.Api.Services;
+using FlowBoard.Domain.Shared.ValueObjects;
 
 namespace FlowBoard.Api.Middleware;
 
 /// <summary>
-/// ASP.NET Core middleware that resolves the current tenant (organisation) from the
-/// authenticated user's JWT claims and makes it available to all downstream components
-/// via <see cref="ITenantContext"/>.
+/// Resolves the current tenant (organisation) for org-scoped requests from the <c>orgId</c> route
+/// value and populates <see cref="TenantContext"/>. Org-owned resources are nested under
+/// <c>/api/v1/organisations/{orgId}/...</c>; requests without an <c>orgId</c> route value (for
+/// example authentication, or the organisation collection itself) pass through unscoped.
 /// <para>
-/// Must be registered after <c>UseAuthentication()</c> and before <c>UseAuthorization()</c>
-/// and the controller pipeline.
+/// This middleware only establishes which tenant a request targets. Whether the caller may act on
+/// that tenant is enforced separately by the organisation authorisation policies, so a request for
+/// an organisation the caller does not belong to is set here but rejected at authorisation before
+/// any data is read.
 /// </para>
 /// <para>
-/// Also sets the Postgres session parameter <c>app.current_organisation_id</c> so that
-/// Row-Level Security policies can enforce tenant isolation at the database level.
+/// Must run after <c>UseRouting</c> (so route values are populated) and before the endpoint executes.
 /// </para>
 /// </summary>
 public sealed class TenantResolutionMiddleware(RequestDelegate next)
 {
     /// <summary>Resolves the tenant context and passes control to the next middleware.</summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <param name="tenantContext">The tenant context to populate.</param>
-    public async Task InvokeAsync(HttpContext context, ITenantContext tenantContext)
+    /// <param name="tenantContext">The request-scoped tenant context to populate.</param>
+    public async Task InvokeAsync(HttpContext context, TenantContext tenantContext)
     {
-        // The concrete ITenantContext implementation reads the "org_id" JWT claim
-        // and sets the Postgres session variable via an EF Core DbCommandInterceptor.
+        if (context.Request.RouteValues.TryGetValue("orgId", out var raw)
+            && Guid.TryParse(raw?.ToString(), out var organisationId))
+        {
+            tenantContext.SetOrganisation(OrganisationId.From(organisationId));
+        }
+
         await next(context);
     }
 }

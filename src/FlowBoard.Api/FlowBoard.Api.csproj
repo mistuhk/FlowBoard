@@ -17,6 +17,8 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="*" />
     <PackageReference Include="Serilog.AspNetCore" Version="*" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="*" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="*" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="*" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="*" />
   </ItemGroup>
 

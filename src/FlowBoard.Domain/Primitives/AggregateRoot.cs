@@ -11,7 +11,8 @@ namespace FlowBoard.Domain.Primitives;
 /// </para>
 /// </summary>
 /// <typeparam name="TId">The type of the aggregate's identifier.</typeparam>
-public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
+public abstract class AggregateRoot<TId> : Entity<TId>, IHasDomainEvents
+    where TId : notnull
 {
     private readonly List<IDomainEvent> _domainEvents = [];
 

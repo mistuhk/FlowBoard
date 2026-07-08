@@ -3,6 +3,9 @@
   <ItemGroup>
     <ProjectReference Include="..\FlowBoard.Modules.Notifications.Domain\FlowBoard.Modules.Notifications.Domain.csproj" />
     <ProjectReference Include="..\..\..\FlowBoard.Application\FlowBoard.Application.csproj" />
+    <!-- Subscribes to Tasks domain events (the published cross-module contract), per the
+         event-driven communication model. References the event types only, not Tasks internals. -->
+    <ProjectReference Include="..\..\Tasks\FlowBoard.Modules.Tasks.Domain\FlowBoard.Modules.Tasks.Domain.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
